@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { PageHeader, Card, StatusBadge } from "../../components/Shared";
-import { ORDERS } from "../../data/mockData";
 
 export default function OrdersPage() {
   const [filter, setFilter] = useState("All");
+  const [orders] = useState([]);
   const statuses = ["All", "Processing", "Shipped", "Delivered", "Cancelled"];
-  const filtered = filter === "All" ? ORDERS : ORDERS.filter(o => o.status === filter);
+  const filtered = filter === "All" ? orders : orders.filter(o => o.status === filter);
   
   return (
     <main style={{ flex: 1, overflow: "auto", padding: "28px" }}>
@@ -43,7 +43,7 @@ export default function OrdersPage() {
           </tbody>
         </table>
         <div style={{ padding: "14px 20px", borderTop: "1px solid #f5f0f0" }}>
-          <span style={{ fontSize: 13, color: "#bbb" }}>Showing {filtered.length} of {ORDERS.length} orders</span>
+          <span style={{ fontSize: 13, color: "#bbb" }}>Showing {filtered.length} of {orders.length} orders</span>
         </div>
       </Card>
     </main>

@@ -1,9 +1,12 @@
 package AppDev.CampusMarketplace.Service;
 
 import AppDev.CampusMarketplace.Entity.OtpCode;
+import AppDev.CampusMarketplace.Entity.Role;
 import AppDev.CampusMarketplace.Entity.User;
 import AppDev.CampusMarketplace.Repository.OtpRepository;
+import AppDev.CampusMarketplace.Repository.SellerApplicationRepository;
 import AppDev.CampusMarketplace.Repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,14 +21,20 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final OtpRepository otpRepository;
+    private final SellerApplicationRepository sellerApplicationRepository;
     private final EmailService emailService;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    @Value("${app.superadmin.email:}")
+    private String superadminEmail;
+
     public AuthService(UserRepository userRepository, OtpRepository otpRepository,
+                       SellerApplicationRepository sellerApplicationRepository,
                        EmailService emailService, JwtService jwtService) {
         this.userRepository = userRepository;
         this.otpRepository = otpRepository;
+        this.sellerApplicationRepository = sellerApplicationRepository;
         this.emailService = emailService;
         this.jwtService = jwtService;
     }
@@ -42,6 +51,7 @@ public class AuthService {
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(password));
         user.setVerified(false);
+        user.setRole(resolveInitialRole(email));
         userRepository.save(user);
 
         sendOtp(email);
@@ -68,7 +78,10 @@ public class AuthService {
         return Map.of(
                 "token", token,
                 "hasUsername", hasUsername,
-                "email", email
+                "email", email,
+                "role", getSafeRole(user).name(),
+                "isApprovedSeller", user.isApprovedSeller(),
+                "applicationStatus", getApplicationStatus(user)
         );
     }
 
@@ -119,7 +132,10 @@ public class AuthService {
         return Map.of(
                 "token", token,
                 "hasUsername", hasUsername,
-                "email", email
+                "email", email,
+                "role", getSafeRole(user).name(),
+                "isApprovedSeller", user.isApprovedSeller(),
+                "applicationStatus", getApplicationStatus(user)
         );
     }
 
@@ -141,11 +157,37 @@ public class AuthService {
         String email = jwtService.extractEmail(token);
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found."));
 
+        Role role = getSafeRole(user);
         return Map.of(
                 "email", user.getEmail(),
                 "username", user.getUsername() != null ? user.getUsername() : "",
-                "id", user.getId()
+                "id", user.getId(),
+                "role", role.name(),
+            "isApprovedSeller", user.isApprovedSeller(),
+            "applicationStatus", getApplicationStatus(user)
         );
+    }
+
+    private Role resolveInitialRole(String email) {
+        if (superadminEmail != null && !superadminEmail.isBlank()
+                && superadminEmail.equalsIgnoreCase(email)) {
+            return Role.SUPERADMIN;
+        }
+        return Role.CUSTOMER;
+    }
+
+    private Role getSafeRole(User user) {
+        if (user.getRole() == null) {
+            user.setRole(Role.CUSTOMER);
+            userRepository.save(user);
+        }
+        return user.getRole();
+    }
+
+    private String getApplicationStatus(User user) {
+        return sellerApplicationRepository.findTopByUserIdOrderByCreatedAtDesc(user.getId())
+                .map(application -> application.getStatus().name())
+                .orElse("NONE");
     }
 
     private void validateEmail(String email) {

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
-import Topbar from "../../components/Topbar";
 
 // Import your dashboard pages
 import DashboardPage from "./Dashboard";
@@ -31,7 +30,7 @@ export default function SellerSide() {  // <-- Renamed from App to SellerSide
     <div style={{ display: "flex", height: "100vh", background: "#fafafa", overflow: "hidden" }}>
       <Sidebar active={page} onNavigate={setPage} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <Topbar />
+       
         {renderPage()}
       </div>
     </div>

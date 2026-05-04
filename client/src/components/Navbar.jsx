@@ -13,8 +13,12 @@ export default function Navbar({
   onOrdersClick,
   onSignInClick,
   onLogoutClick, // Added to handle logging out
+  onApplySellerClick,
+  onSellerDashboardClick,
   isLoggedIn = false, // Added to track auth state
   username = "Wildcat", // Added to personalize the experience
+  role = "CUSTOMER",
+  applicationStatus = "NONE",
   showNotification = true,
 }) {
   const [isMobile, setIsMobile] = useState(
@@ -63,6 +67,24 @@ export default function Navbar({
             <button type="button" className="nav-btn" onClick={onOrdersClick}>
               My Orders
             </button>
+
+            {role === "CUSTOMER" && applicationStatus !== "PENDING" && (
+              <button type="button" className="nav-btn" onClick={onApplySellerClick}>
+                Apply to be Seller
+              </button>
+            )}
+
+            {role === "CUSTOMER" && applicationStatus === "PENDING" && (
+              <button type="button" className="nav-btn" disabled>
+                Application Pending
+              </button>
+            )}
+
+            {role === "SELLER" && (
+              <button type="button" className="nav-btn" onClick={onSellerDashboardClick}>
+                Go to Seller Dashboard
+              </button>
+            )}
 
             {showNotification && !isMobile && (
               <button type="button" className="nav-btn">

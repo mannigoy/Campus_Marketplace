@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import "../styles/shop.css"; 
 
 // Internal assets
-import intramsShirt from "../assets/intrams_shirt.jpg";
 import denImg from "../assets/den.jpg";
-import pushPin from "../assets/push.jpg";
-import lanyard from "../assets/gdg_lanyard.jpg";
 
 const categories = [
   { title: "Food and Beverages", shopLabel: "Shop Food", image: denImg },
@@ -14,13 +12,26 @@ const categories = [
 ];
 
 export default function ShopPage() {
-  const [extraProducts, setExtraProducts] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Example of "flooding" the page with API data
   useEffect(() => {
-    fetch('https://fakestoreapi.com/products?limit=18')
-      .then(res => res.json())
-      .then(data => setExtraProducts(data));
+    const loadProducts = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await axios.get("http://localhost:8080/api/products");
+        setProducts(Array.isArray(res.data) ? res.data : []);
+      } catch {
+        setError("Cannot reach server.");
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
   }, []);
 
   return (
@@ -60,17 +71,28 @@ export default function ShopPage() {
           <a href="#" className="view-all-link">View All Products</a>
         </div>
 
+        {error && (
+          <div className="section-text" style={{ color: "#b91c1c", marginBottom: 12 }}>
+            {error}
+          </div>
+        )}
+
         <div className="products-grid">
-          {/* Mapping the API data to "flood" the page */}
-          {extraProducts.map((product) => (
+          {loading && (
+            <div className="section-text">Loading products...</div>
+          )}
+          {!loading && products.length === 0 && (
+            <div className="section-text">No products available yet.</div>
+          )}
+          {!loading && products.map((product) => (
             <div key={product.id} className="product-card">
               <div className="product-image-wrap">
-                <img src={product.image} alt={product.title} className="product-image" />
+                <img src={product.imageUrl || denImg} alt={product.name} className="product-image" />
                 {product.id % 2 === 0 && <span className="new-badge">NEW</span>}
               </div>
-              <span className="product-brand">{product.category}</span>
-              <span className="product-name">{product.title}</span>
-              <span className="product-price">₱{product.price}</span>
+              <span className="product-brand">{product.category || "Uncategorized"}</span>
+              <span className="product-name">{product.name}</span>
+              <span className="product-price">₱{Number(product.price || 0).toLocaleString()}</span>
             </div>
           ))}
         </div>

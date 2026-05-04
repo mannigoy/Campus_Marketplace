@@ -22,6 +22,13 @@ public class User {
     @Column
     private boolean isVerified = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.CUSTOMER;
+
+    @Column(nullable = false)
+    private boolean isApprovedSeller = false;
+
     public Long getId() { return id; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
@@ -31,6 +38,10 @@ public class User {
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public boolean isVerified() { return isVerified; }
     public void setVerified(boolean verified) { isVerified = verified; }
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
+    public boolean isApprovedSeller() { return isApprovedSeller; }
+    public void setApprovedSeller(boolean approvedSeller) { isApprovedSeller = approvedSeller; }
 }
 
 

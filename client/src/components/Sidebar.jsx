@@ -3,7 +3,7 @@ import { DashIcon, ProductIcon, PlusCircleIcon, OrderIcon, AnalyticsIcon, Settin
 const NAV = [
   { key: "dashboard", label: "Dashboard", Icon: DashIcon },
   { key: "products", label: "Products", Icon: ProductIcon },
-  { key: "add-product", label: "Add Product", Icon: PlusCircleIcon },
+ 
   { key: "orders", label: "Orders", Icon: OrderIcon },
   { key: "analytics", label: "Analytics", Icon: AnalyticsIcon },
   { key: "settings", label: "Settings", Icon: SettingsIcon },

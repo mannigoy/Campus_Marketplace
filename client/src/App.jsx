@@ -1,8 +1,9 @@
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 
 import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Marketplace from "./pages/MarketPlace";
 import Contactpage from "./pages/Contactpage";
 import AboutUs from "./pages/AboutUs";
@@ -10,12 +11,14 @@ import SellerSide from "./pages/SellerSide/SellerSide";
 import ShopPage from "./pages/ShopPage";
 import SignUpModal from "./Signupmodal";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import SellerApplication from "./pages/SellerApplication";
+import Unauthorized from "./pages/Unauthorized";
 import { useAuth } from "./AuthContext";
 
 
 export default function App() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user, logout } = useAuth();
 
   // 1. Modal State Logic
@@ -27,7 +30,7 @@ export default function App() {
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/users", {
+        const response = await fetch("http://localhost:8080/api/test", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -48,7 +51,7 @@ export default function App() {
 
   // 2. Route Check Logic
   // Hide main layout elements when on the Seller Dashboard
-  const isSellerDashboard = location.pathname.startsWith("/user/seller");
+  // const isSellerDashboard = location.pathname.startsWith("/user/seller");
 
   // 3. Handlers
   const openSignUp = () => {
@@ -77,15 +80,19 @@ export default function App() {
             We only show this if we aren't in the Seller Dashboard.
             The Sign In button opens the login modal.
         */}
-      {!isSellerDashboard && (
+      {/* {!isSellerDashboard && ( */}
         <Navbar
           onOrdersClick={() => navigate("/orders")}
           onSignInClick={openSignIn}
           isLoggedIn={!!user}
           username={user?.username || ""}
+          role={user?.role || "CUSTOMER"}
+          applicationStatus={user?.applicationStatus || "NONE"}
+          onApplySellerClick={() => navigate("/seller-application")}
+          onSellerDashboardClick={() => navigate("/seller/dashboard")}
           onLogoutClick={handleLogout}
         />
-      )}
+      {/* )} */}
 
       {/* MAIN CONTENT AREA */}
       <main className="app-content">
@@ -95,6 +102,16 @@ export default function App() {
           
           {/* Dashboard Page (shown after login) */}
           <Route path="/dashboard" element={<Dashboard />} />
+
+          {/* Seller Application */}
+          <Route
+            path="/seller-application"
+            element={
+              <ProtectedRoute requiredRoles={["CUSTOMER"]}>
+                <SellerApplication />
+              </ProtectedRoute>
+            }
+          />
           
           {/* Marketplace/Landing Page */}
           <Route path="/landing_page" element={<Marketplace />} />
@@ -104,7 +121,26 @@ export default function App() {
           <Route path="/about" element={<AboutUs />} />
           
           {/* Seller Dashboard */}
-          <Route path="/user/seller/*" element={<SellerSide />} />
+          <Route
+            path="/seller/*"
+            element={
+              <ProtectedRoute requiredRoles={["SELLER"]}>
+                <SellerSide />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Dashboard */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRoles={["ADMIN", "SUPERADMIN"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/unauthorized" element={<Unauthorized />} />
           
           {/* 404 Fallback */}
           <Route path="*" element={<div style={{ padding: "5rem", textAlign: "center" }}><h1>404</h1><p>Page Not Found</p></div>} />
@@ -124,7 +160,7 @@ export default function App() {
       />
 
       {/* FOOTER */}
-      {!isSellerDashboard && <Footer />}
+      {/* {!isSellerDashboard && */}<Footer />{/* } */}
     </div>
   );
 }

@@ -291,6 +291,9 @@ export default function SignUpModal({
   const [done, setDone] = useState(false);
   const [token, setToken] = useState("");
   const [username, setUsername] = useState("");
+  const [userRole, setUserRole] = useState("CUSTOMER");
+  const [isApprovedSeller, setIsApprovedSeller] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState("NONE");
   const [signInForm, setSignInForm] = useState({ email: "", password: "" });
   const [signInError, setSignInError] = useState("");
   const [signInLoading, setSignInLoading] = useState(false);
@@ -304,6 +307,9 @@ export default function SignUpModal({
     setDone(false);
     setToken("");
     setUsername("");
+    setUserRole("CUSTOMER");
+    setIsApprovedSeller(false);
+    setApplicationStatus("NONE");
     setSignInForm({ email: "", password: "" });
     setSignInError("");
     setSignInLoading(false);
@@ -321,6 +327,9 @@ export default function SignUpModal({
     setDone(false);
     setToken("");
     setUsername("");
+    setUserRole("CUSTOMER");
+    setIsApprovedSeller(false);
+    setApplicationStatus("NONE");
     setSignInForm({ email: "", password: "" });
     setSignInError("");
     setSignInLoading(false);
@@ -370,7 +379,17 @@ export default function SignUpModal({
         return;
       }
 
-      login(userData.email, userData.username, data.token);
+      login(
+        {
+          email: userData.email,
+          username: userData.username,
+          role: userData.role,
+          isApprovedSeller: userData.isApprovedSeller,
+          applicationStatus: userData.applicationStatus,
+          id: userData.id,
+        },
+        data.token
+      );
       handleClose();
       navigate("/dashboard");
     } catch (err) {
@@ -492,7 +511,16 @@ export default function SignUpModal({
                 <div className="msg-success">✓ Your account has been successfully created.</div>
                 <button className="btn-submit" onClick={() => {
                   // Login the user
-                  login(email, username, token);
+                  login(
+                    {
+                      email,
+                      username,
+                      role: userRole,
+                      isApprovedSeller,
+                      applicationStatus,
+                    },
+                    token
+                  );
                   handleClose();
                   navigate("/dashboard");
                 }}>
@@ -511,6 +539,13 @@ export default function SignUpModal({
                 email={email}
                 onNext={(data) => {
                   setToken(data.token);
+                  if (data.role) setUserRole(data.role);
+                  if (data.isApprovedSeller !== undefined) {
+                    setIsApprovedSeller(data.isApprovedSeller);
+                  }
+                  if (data.applicationStatus) {
+                    setApplicationStatus(data.applicationStatus);
+                  }
                   if (data.hasUsername) setDone(true); 
                   else setStep(2);              
                 }}

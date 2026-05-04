@@ -41,9 +41,21 @@ export default function Dashboard() {
             <button className="btn-primary" onClick={() => navigate("/")}>
               Go to Marketplace
             </button>
-            <button className="btn-secondary" onClick={() => navigate("/user/seller/dashboard")}>
-              Seller Dashboard
-            </button>
+            {user.role === "CUSTOMER" && user.applicationStatus !== "PENDING" && (
+              <button className="btn-secondary" onClick={() => navigate("/seller-application")}>
+                Apply to be a Seller
+              </button>
+            )}
+            {user.role === "CUSTOMER" && user.applicationStatus === "PENDING" && (
+              <button className="btn-secondary" disabled>
+                Application Pending
+              </button>
+            )}
+            {user.role === "SELLER" && (
+              <button className="btn-secondary" onClick={() => navigate("/seller/dashboard")}>
+                Go to Seller Dashboard
+              </button>
+            )}
             <button className="btn-logout" onClick={handleLogout}>
               Log Out
             </button>
