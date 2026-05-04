@@ -37,7 +37,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/seller-applications/pending", "/api/seller-applications/*/approve")
                     .hasAnyRole("ADMIN", "SUPERADMIN")
                 .requestMatchers("/api/seller/**").hasRole("SELLER")
-                .requestMatchers("/api/admin/**").hasRole("SUPERADMIN")
+                .requestMatchers("/api/admin/promote/**").hasRole("SUPERADMIN")
+                .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPERADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

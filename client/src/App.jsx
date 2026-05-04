@@ -11,7 +11,7 @@ import SellerSide from "./pages/SellerSide/SellerSide";
 import ShopPage from "./pages/ShopPage";
 import SignUpModal from "./Signupmodal";
 import Dashboard from "./pages/Dashboard";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./pages/AdminSide/AdminDashboard";
 import SellerApplication from "./pages/SellerApplication";
 import Unauthorized from "./pages/Unauthorized";
 import { useAuth } from "./AuthContext";

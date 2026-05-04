@@ -34,6 +34,10 @@ public class SellerDashboardController {
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboard() {
         User user = getCurrentUser();
+        String storeName = "";
+        if (user.getSellerStore() != null) {
+            storeName = user.getSellerStore().getStoreName();
+        }
 
         Map<String, Object> stats = Map.of(
                 "totalRevenue", 0,
@@ -44,6 +48,7 @@ public class SellerDashboardController {
 
         return ResponseEntity.ok(Map.of(
                 "sellerId", user.getId(),
+            "storeName", storeName,
                 "stats", stats,
                 "recentOrders", List.of(),
                 "lowStockProducts", List.of()

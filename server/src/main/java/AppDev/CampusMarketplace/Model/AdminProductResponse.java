@@ -1,0 +1,45 @@
+package AppDev.CampusMarketplace.Model;
+
+import AppDev.CampusMarketplace.Entity.Product;
+
+import java.math.BigDecimal;
+
+public class AdminProductResponse {
+    private Long id;
+    private String name;
+    private String description;
+    private BigDecimal price;
+    private Integer stockQuantity;
+    private String imageUrl;
+    private String category;
+    private Long sellerId;
+    private String storeName;
+
+    public static AdminProductResponse fromEntity(Product product) {
+        AdminProductResponse response = new AdminProductResponse();
+        response.id = product.getId();
+        response.name = product.getName();
+        response.description = product.getDescription();
+        response.price = product.getPrice();
+        response.stockQuantity = product.getStockQuantity();
+        response.imageUrl = product.getImageUrl();
+        response.category = product.getCategory();
+        if (product.getSeller() != null) {
+            response.sellerId = product.getSeller().getId();
+            if (product.getSeller().getSellerStore() != null) {
+                response.storeName = product.getSeller().getSellerStore().getStoreName();
+            }
+        }
+        return response;
+    }
+
+    public Long getId() { return id; }
+    public String getName() { return name; }
+    public String getDescription() { return description; }
+    public BigDecimal getPrice() { return price; }
+    public Integer getStockQuantity() { return stockQuantity; }
+    public String getImageUrl() { return imageUrl; }
+    public String getCategory() { return category; }
+    public Long getSellerId() { return sellerId; }
+    public String getStoreName() { return storeName; }
+}

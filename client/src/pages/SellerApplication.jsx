@@ -149,7 +149,7 @@ export default function SellerApplication() {
         </div>
 
         <div style={{ display: "grid", gap: 6 }}>
-          <label htmlFor="reason" style={{ fontWeight: 600 }}>Reason</label>
+          <label htmlFor="reason" style={{ fontWeight: 600 }}>Store Description</label>
           <textarea
             id="reason"
             name="reason"

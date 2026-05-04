@@ -3,8 +3,10 @@ package AppDev.CampusMarketplace.Service;
 import AppDev.CampusMarketplace.Entity.Role;
 import AppDev.CampusMarketplace.Entity.SellerApplication;
 import AppDev.CampusMarketplace.Entity.SellerApplicationStatus;
+import AppDev.CampusMarketplace.Entity.SellerStore;
 import AppDev.CampusMarketplace.Entity.User;
 import AppDev.CampusMarketplace.Repository.SellerApplicationRepository;
+import AppDev.CampusMarketplace.Repository.SellerStoreRepository;
 import AppDev.CampusMarketplace.Repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,10 +20,14 @@ public class UserManagementService {
 
     private final UserRepository userRepository;
     private final SellerApplicationRepository sellerApplicationRepository;
+    private final SellerStoreRepository sellerStoreRepository;
 
-    public UserManagementService(UserRepository userRepository, SellerApplicationRepository sellerApplicationRepository) {
+    public UserManagementService(UserRepository userRepository,
+                                 SellerApplicationRepository sellerApplicationRepository,
+                                 SellerStoreRepository sellerStoreRepository) {
         this.userRepository = userRepository;
         this.sellerApplicationRepository = sellerApplicationRepository;
+        this.sellerStoreRepository = sellerStoreRepository;
     }
 
     public User promoteToAdmin(Long targetUserId) {
@@ -81,6 +87,16 @@ public class UserManagementService {
         if (getSafeRole(applicant) != Role.CUSTOMER) {
             throw new RuntimeException("User is not eligible for seller approval.");
         }
+
+        if (sellerStoreRepository.findByUserId(applicant.getId()).isEmpty()) {
+            SellerStore store = new SellerStore();
+            store.setStoreName(application.getShopName());
+            store.setDescription(application.getReason());
+            store.setUser(applicant);
+            sellerStoreRepository.save(store);
+            applicant.setSellerStore(store);
+        }
+
         applicant.setRole(Role.SELLER);
         applicant.setApprovedSeller(true);
         userRepository.save(applicant);

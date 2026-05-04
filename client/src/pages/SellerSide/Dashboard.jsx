@@ -17,6 +17,7 @@ export default function DashboardPage({ onNavigate }) {
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [storeName, setStoreName] = useState("");
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -36,6 +37,7 @@ export default function DashboardPage({ onNavigate }) {
         setStats(data.stats || DEFAULT_STATS);
         setRecentOrders(data.recentOrders || []);
         setLowStockProducts(data.lowStockProducts || []);
+        setStoreName(data.storeName || "");
       } catch {
         setError("Cannot reach server.");
       } finally {
@@ -50,6 +52,14 @@ export default function DashboardPage({ onNavigate }) {
 
   return (
     <main style={{ flex: 1, overflow: "auto", padding: "28px" }}>
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: "#222" }}>
+          {storeName || "Seller Dashboard"}
+        </div>
+        <div style={{ fontSize: 13, color: "#9ca3af" }}>
+          Store overview and activity
+        </div>
+      </div>
       {error && (
         <div style={{ background: "#fef2f2", color: "#b91c1c", padding: "12px 16px", borderRadius: 8, marginBottom: 16 }}>
           {error}

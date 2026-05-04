@@ -4,7 +4,7 @@ import Sidebar from "../../components/Sidebar";
 // Import your dashboard pages
 import DashboardPage from "./Dashboard";
 import ProductsPage from "./ProductsPage";
-import AddProductPage from "./AddProductPage";
+
 import OrdersPage from "./Orders";
 import AnalyticsPage from "./Analytics";
 import SettingsPage from "./SettingsPage";
@@ -17,7 +17,7 @@ export default function SellerSide() {  // <-- Renamed from App to SellerSide
     switch (page) {
       case "dashboard": return <DashboardPage onNavigate={setPage} />;
       case "products": return <ProductsPage />;
-      case "add-product": return <AddProductPage onNavigate={setPage} />;
+    
       case "orders": return <OrdersPage />;
       case "analytics": return <AnalyticsPage />;
       case "settings": return <SettingsPage />;

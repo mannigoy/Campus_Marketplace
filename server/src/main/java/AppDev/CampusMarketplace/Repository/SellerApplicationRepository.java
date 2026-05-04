@@ -11,4 +11,5 @@ public interface SellerApplicationRepository extends JpaRepository<SellerApplica
     List<SellerApplication> findByStatus(SellerApplicationStatus status);
     boolean existsByUserIdAndStatus(Long userId, SellerApplicationStatus status);
     Optional<SellerApplication> findTopByUserIdOrderByCreatedAtDesc(Long userId);
+    Optional<SellerApplication> findByUserId(Long userId);
 }

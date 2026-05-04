@@ -29,6 +29,9 @@ public class User {
     @Column(nullable = false)
     private boolean isApprovedSeller = false;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private SellerStore sellerStore;
+
     public Long getId() { return id; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
@@ -42,6 +45,8 @@ public class User {
     public void setRole(Role role) { this.role = role; }
     public boolean isApprovedSeller() { return isApprovedSeller; }
     public void setApprovedSeller(boolean approvedSeller) { isApprovedSeller = approvedSeller; }
+    public SellerStore getSellerStore() { return sellerStore; }
+    public void setSellerStore(SellerStore sellerStore) { this.sellerStore = sellerStore; }
 }
 
 
