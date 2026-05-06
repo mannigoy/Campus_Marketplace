@@ -86,9 +86,9 @@ Features that enhance the experience but are not critical:
 | Pick-up Schedule | ⏳ Planned |
 | Notifications | ⏳ Planned |
 | Order History | ⏳ Planned |
-| Product Details (CRUD) | ⏳ Planned |
+| Product Details (CRUD) | 🔄 In Progress |
 | Ratings & Reviews | ⏳ Planned |
-| Seller Dashboard | ⏳ Planned |
+| Seller Dashboard | 🔄 In Progress|
 | AI Recommendations | ⏳ Planned |
 
 > **Legend:** ✅ Done &nbsp;|&nbsp; 🔄 In Progress &nbsp;|&nbsp; ⏳ Planned
