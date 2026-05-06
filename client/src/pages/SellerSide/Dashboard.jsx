@@ -54,7 +54,7 @@ export default function DashboardPage({ onNavigate }) {
     <main style={{ flex: 1, overflow: "auto", padding: "28px" }}>
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: "#222" }}>
-          {storeName || "Seller Dashboard"}
+         
         </div>
         <div style={{ fontSize: 13, color: "#9ca3af" }}>
           Store overview and activity

@@ -30,6 +30,10 @@ public class Product {
     @Column(length = 120)
     private String category;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProductStatus status = ProductStatus.ACTIVE;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
@@ -47,6 +51,8 @@ public class Product {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
+    public ProductStatus getStatus() { return status; }
+    public void setStatus(ProductStatus status) { this.status = status; }
     public User getSeller() { return seller; }
     public void setSeller(User seller) { this.seller = seller; }
 }

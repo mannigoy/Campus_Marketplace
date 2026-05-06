@@ -36,6 +36,8 @@ public class SecurityConfig {
                     .hasRole("CUSTOMER")
                 .requestMatchers("/api/seller-applications/pending", "/api/seller-applications/*/approve")
                     .hasAnyRole("ADMIN", "SUPERADMIN")
+                .requestMatchers("/api/seller/store", "/api/seller/dashboard")
+                    .hasAnyRole("SELLER", "ADMIN", "SUPERADMIN")
                 .requestMatchers("/api/seller/**").hasRole("SELLER")
                 .requestMatchers("/api/admin/promote/**").hasRole("SUPERADMIN")
                 .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPERADMIN")

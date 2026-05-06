@@ -2,20 +2,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { PageHeader, Card, StatusBadge } from "../../components/Shared";
 import { useAuth } from "../../AuthContext";
+import AddProduct from "../AddProduct";
 
 const API_BASE = "http://localhost:8080/api";
-const MAX_IMAGE_SIZE_MB = 30;
-const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
-const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "dlljmtv5g";
-const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "";
-const CLOUDINARY_FOLDER = import.meta.env.VITE_CLOUDINARY_FOLDER || "campus_marketplace";
-const CATEGORY_OPTIONS = [
-  "Food and Beverages",
-  "Stickers and Pins",
-  "CIT-U Official Items",
-  "Other",
-];
-
 export default function ProductsPage() {
   const { token } = useAuth();
   const TABS = ["All Products", "Active", "Draft", "Out of Stock"];
@@ -25,7 +14,8 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editForm, setEditForm] = useState({
     name: "",
     description: "",
     price: "",
@@ -33,11 +23,8 @@ export default function ProductsPage() {
     imageUrl: "",
     category: "",
   });
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState("");
-  const [formError, setFormError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -64,123 +51,80 @@ export default function ProductsPage() {
   }, [token]);
 
   const normalizeStatus = (status) => (status || "").toLowerCase();
+  const formatStatusLabel = (rawStatus) => {
+    if (!rawStatus) return "";
+    const normalized = String(rawStatus).toLowerCase();
+    if (normalized === "active") return "Active";
+    if (normalized === "hidden") return "Hidden";
+    if (normalized === "suspended") return "Suspended";
+    if (normalized === "inactive") return "Inactive";
+    return rawStatus;
+  };
   const getStatus = (product) => {
-    if (product.status) return product.status;
+    const statusLabel = formatStatusLabel(product.status);
+    if (statusLabel === "Hidden") return "Hidden";
     if (product.stockQuantity === 0) return "Out of Stock";
+    if (statusLabel) return statusLabel;
     return "Active";
   };
 
-  const handleFormChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setFormError("");
+  const openEditProduct = (product) => {
+    setEditingProduct(product);
+    setEditForm({
+      name: product.name || "",
+      description: product.description || "",
+      price: product.price ?? "",
+      stockQuantity: product.stockQuantity ?? "",
+      imageUrl: product.imageUrl || "",
+      category: product.category || "",
+    });
+    setEditError("");
   };
 
-  const resetForm = () => {
-    setForm({ name: "", description: "", price: "", stockQuantity: "", imageUrl: "", category: "" });
-    setImageFile(null);
-    setImagePreview("");
-    setFormError("");
+  const closeEditProduct = () => {
+    setEditingProduct(null);
+    setEditError("");
   };
 
-  const handleImageSelect = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) {
-      setImageFile(null);
-      setImagePreview("");
-      setForm((prev) => ({ ...prev, imageUrl: "" }));
-      return;
-    }
-    if (!file.type.startsWith("image/")) {
-      setFormError("Please choose an image file.");
-      return;
-    }
-    if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      setFormError(`Max file size is ${MAX_IMAGE_SIZE_MB}MB.`);
-      return;
-    }
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-    setFormError("");
-  };
-
-  const handleUploadImage = async () => {
-    if (!imageFile) {
-      setFormError("Please select an image first.");
-      return;
-    }
-    if (!CLOUDINARY_UPLOAD_PRESET) {
-      setFormError("Cloudinary upload preset is missing.");
-      return;
-    }
-    setUploading(true);
-    setFormError("");
-
-    try {
-      const formData = new FormData();
-      formData.append("file", imageFile);
-      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-      if (CLOUDINARY_FOLDER) {
-        formData.append("folder", CLOUDINARY_FOLDER);
-      }
-
-      const uploadRes = await axios.post(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        formData
-      );
-
-      const secureUrl = uploadRes.data?.secure_url || "";
-      setForm((prev) => ({ ...prev, imageUrl: secureUrl }));
-    } catch {
-      setFormError("Image upload failed.");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleSubmit = async (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
-    setFormError("");
+    setEditError("");
 
-    if (!form.name.trim()) {
-      setFormError("Product name is required.");
+    if (!editForm.name.trim()) {
+      setEditError("Product name is required.");
       return;
     }
-    if (form.price === "" || Number.isNaN(Number(form.price))) {
-      setFormError("Price is required.");
+    if (editForm.price === "" || Number.isNaN(Number(editForm.price))) {
+      setEditError("Price is required.");
       return;
     }
-    if (form.stockQuantity === "" || Number.isNaN(Number(form.stockQuantity))) {
-      setFormError("Stock quantity is required.");
-      return;
-    }
-    if (!form.imageUrl) {
-      setFormError("Please upload an image first.");
+    if (editForm.stockQuantity === "" || Number.isNaN(Number(editForm.stockQuantity))) {
+      setEditError("Stock quantity is required.");
       return;
     }
 
-    setSubmitting(true);
+    setEditSubmitting(true);
     try {
       const payload = {
-        name: form.name.trim(),
-        description: form.description.trim(),
-        price: Number(form.price),
-        stockQuantity: Number(form.stockQuantity),
-        imageUrl: form.imageUrl.trim() || null,
-        category: form.category || null,
+        name: editForm.name.trim(),
+        description: editForm.description.trim(),
+        price: Number(editForm.price),
+        stockQuantity: Number(editForm.stockQuantity),
+        imageUrl: editForm.imageUrl.trim() || null,
+        category: editForm.category || null,
       };
-      const res = await axios.post(`${API_BASE}/seller/products`, payload, {
+      const res = await axios.put(`${API_BASE}/seller/products/${editingProduct.id}`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setProducts((prev) => [res.data, ...prev]);
-      setShowForm(false);
-      resetForm();
+      setProducts((prev) => prev.map((p) => (p.id === editingProduct.id ? res.data : p)));
+      closeEditProduct();
     } catch (err) {
-      const message = err?.response?.data?.error || "Failed to add product.";
-      setFormError(message);
+      const message = err?.response?.data?.error || "Failed to update product.";
+      setEditError(message);
     } finally {
-      setSubmitting(false);
+      setEditSubmitting(false);
     }
   };
   
@@ -203,120 +147,105 @@ export default function ProductsPage() {
         subtitle="Manage your store's inventory, pricing, and availability."
         actions={
           <>
-            <button className="cm-btn-ghost">⬇ Export</button>
+           
             <button className="cm-btn-primary" onClick={() => setShowForm(true)}>+ Add Product</button>
           </>
         }
       />
-      {showForm && (
-        <Card style={{ marginBottom: 16 }}>
-          <form onSubmit={handleSubmit} style={{ padding: "16px 20px", display: "grid", gap: 12 }}>
-            <div style={{ display: "grid", gap: 6 }}>
-              <label htmlFor="name" style={{ fontWeight: 600 }}>Name</label>
-              <input
-                id="name"
-                name="name"
-                value={form.name}
-                onChange={handleFormChange}
-                placeholder="Product name"
-                style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
-              />
-            </div>
-            <div style={{ display: "grid", gap: 6 }}>
-              <label htmlFor="description" style={{ fontWeight: 600 }}>Description</label>
-              <textarea
-                id="description"
-                name="description"
-                value={form.description}
-                onChange={handleFormChange}
-                rows={3}
-                placeholder="Short description"
-                style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
-              />
-            </div>
-            <div style={{ display: "grid", gap: 6 }}>
-              <label htmlFor="price" style={{ fontWeight: 600 }}>Price</label>
-              <input
-                id="price"
-                name="price"
-                type="number"
-                step="0.01"
-                value={form.price}
-                onChange={handleFormChange}
-                placeholder="0.00"
-                style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
-              />
-            </div>
-            <div style={{ display: "grid", gap: 6 }}>
-              <label htmlFor="stockQuantity" style={{ fontWeight: 600 }}>Stock Quantity</label>
-              <input
-                id="stockQuantity"
-                name="stockQuantity"
-                type="number"
-                value={form.stockQuantity}
-                onChange={handleFormChange}
-                placeholder="0"
-                style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
-              />
-            </div>
-            <div style={{ display: "grid", gap: 6 }}>
-              <label htmlFor="category" style={{ fontWeight: 600 }}>Category</label>
-              <select
-                id="category"
-                name="category"
-                value={form.category}
-                onChange={handleFormChange}
-                style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
-              >
-                <option value="">Select a category</option>
-                {CATEGORY_OPTIONS.map((option) => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
-            </div>
-            <div style={{ display: "grid", gap: 6 }}>
-              <label htmlFor="imageFile" style={{ fontWeight: 600 }}>Image</label>
-              <input
-                id="imageFile"
-                name="imageFile"
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-              />
-              {imagePreview && (
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8, border: "1px solid #e5e7eb" }}
+      {editingProduct && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 40, padding: 20 }}>
+          <Card style={{ width: 560, maxWidth: "95vw" }}>
+            <form onSubmit={handleEditSubmit} style={{ padding: "16px 20px", display: "grid", gap: 12 }}>
+              <div style={{ fontWeight: 600, color: "#111827", fontSize: 16 }}>Edit Product</div>
+              <div style={{ display: "grid", gap: 6 }}>
+                <label htmlFor="edit-name" style={{ fontWeight: 600 }}>Name</label>
+                <input
+                  id="edit-name"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                  style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
                 />
-              )}
-              <button
-                type="button"
-                className="cm-btn-ghost"
-                onClick={handleUploadImage}
-                disabled={!imageFile || uploading}
-              >
-                {uploading ? "Uploading..." : form.imageUrl ? "Re-upload Image" : "Upload Image"}
-              </button>
-              {form.imageUrl && (
-                <div style={{ fontSize: 12, color: "#6b7280" }}>Image uploaded.</div>
-              )}
-            </div>
-            {formError && (
-              <div style={{ color: "#b91c1c", background: "#fef2f2", padding: "8px 12px", borderRadius: 8 }}>
-                {formError}
               </div>
-            )}
-            <div style={{ display: "flex", gap: 12 }}>
-              <button type="submit" className="cm-btn-primary" disabled={submitting}>
-                {submitting ? "Saving..." : "Save Product"}
-              </button>
-              <button type="button" className="cm-btn-ghost" onClick={() => { resetForm(); setShowForm(false); }}>
-                Cancel
-              </button>
-            </div>
-          </form>
-        </Card>
+              <div style={{ display: "grid", gap: 6 }}>
+                <label htmlFor="edit-description" style={{ fontWeight: 600 }}>Description</label>
+                <textarea
+                  id="edit-description"
+                  value={editForm.description}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                  style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
+                />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div style={{ display: "grid", gap: 6 }}>
+                  <label htmlFor="edit-price" style={{ fontWeight: 600 }}>Price</label>
+                  <input
+                    id="edit-price"
+                    type="number"
+                    step="0.01"
+                    value={editForm.price}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, price: e.target.value }))}
+                    style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
+                  />
+                </div>
+                <div style={{ display: "grid", gap: 6 }}>
+                  <label htmlFor="edit-stock" style={{ fontWeight: 600 }}>Stock Quantity</label>
+                  <input
+                    id="edit-stock"
+                    type="number"
+                    value={editForm.stockQuantity}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, stockQuantity: e.target.value }))}
+                    style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
+                  />
+                </div>
+              </div>
+              <div style={{ display: "grid", gap: 6 }}>
+                <label htmlFor="edit-category" style={{ fontWeight: 600 }}>Category</label>
+                <input
+                  id="edit-category"
+                  value={editForm.category}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, category: e.target.value }))}
+                  style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
+                />
+              </div>
+              <div style={{ display: "grid", gap: 6 }}>
+                <label htmlFor="edit-image" style={{ fontWeight: 600 }}>Image URL</label>
+                <input
+                  id="edit-image"
+                  value={editForm.imageUrl}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                  style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
+                />
+              </div>
+              {editError && (
+                <div style={{ color: "#b91c1c", background: "#fef2f2", padding: "8px 12px", borderRadius: 8 }}>
+                  {editError}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  className="cm-btn-ghost"
+                  onClick={closeEditProduct}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="cm-btn-primary" disabled={editSubmitting}>
+                  {editSubmitting ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
+      {showForm && (
+       <AddProduct
+    onSuccess={(newProduct) => {
+      setProducts((prev) => [newProduct, ...prev]);
+      setShowForm(false);
+    }}
+    onCancel={() => setShowForm(false)}
+  />
       )}
       {error && (
         <div style={{ background: "#fef2f2", color: "#b91c1c", padding: "12px 16px", borderRadius: 8, marginBottom: 16 }}>
@@ -381,7 +310,7 @@ export default function ProductsPage() {
                   </div>
                 </td>
                 <td style={{ padding: "14px 12px", fontSize: 13, color: "#aaa", fontWeight: 500 }}>{p.id || "—"}</td>
-                <td style={{ padding: "14px 12px", fontSize: 14, fontWeight: 600, color: "#333" }}>${Number(p.price || 0).toLocaleString()}.00</td>
+                <td style={{ padding: "14px 12px", fontSize: 14, fontWeight: 600, color: "#333" }}>₱{Number(p.price || 0).toLocaleString()}.00</td>
                 <td style={{ padding: "14px 12px" }}>
                   {p.stockQuantity === null || p.stockQuantity === undefined ? <span style={{ color: "#ccc" }}>—</span>
                     : p.stockQuantity === 0 ? <span style={{ fontSize: 13, color: "#ef4444", fontWeight: 600 }}>0 in stock</span>
@@ -389,7 +318,12 @@ export default function ProductsPage() {
                 </td>
                 <td style={{ padding: "14px 12px" }}><StatusBadge status={getStatus(p)} /></td>
                 <td style={{ padding: "14px 12px" }}>
-                  <button style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 10px", borderRadius: 6, color: "#aaa", fontSize: 18, letterSpacing: 1 }}>···</button>
+                  <button
+                    onClick={() => openEditProduct(p)}
+                    style={{ background: "#111827", color: "white", border: "none", borderRadius: 6, padding: "6px 10px", cursor: "pointer" }}
+                  >
+                    Edit Product
+                  </button>
                 </td>
               </tr>
             ))}

@@ -4,7 +4,8 @@ import AppDev.CampusMarketplace.Entity.ProductStatus;
 
 import java.math.BigDecimal;
 
-public class AdminProductUpdateRequest {
+public class AdminProductCreateRequest {
+    private Long storeId;
     private String name;
     private String description;
     private BigDecimal price;
@@ -13,6 +14,8 @@ public class AdminProductUpdateRequest {
     private String category;
     private ProductStatus status;
 
+    public Long getStoreId() { return storeId; }
+    public void setStoreId(Long storeId) { this.storeId = storeId; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getDescription() { return description; }

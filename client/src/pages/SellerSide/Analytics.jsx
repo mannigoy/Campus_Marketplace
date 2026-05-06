@@ -94,7 +94,7 @@ export default function AnalyticsPage() {
           </div>
         ))}
       </div>
-
+{/*}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         <Card style={{ padding: 24 }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: "#222", marginBottom: 20 }}>Monthly Revenue</div>
@@ -135,6 +135,32 @@ export default function AnalyticsPage() {
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>${Number(p.revenue).toLocaleString()}</div>
               </div>
             ))
+          )}
+        </Card>
+       
+        
+      </div>
+*/}
+      <div style={{ display: "grid", gap: 60, gridTemplateColumns: "1fr", marginTop: 40 }}>
+<Card style={{ padding: 24 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: "#222", marginBottom: 20 }}>Will not Implement for now</div>
+          {loading ? (
+            <div style={{ color: "#9ca3af", fontSize: 13 }}>Loading chart...</div>
+          ) : monthlyRevenue.length === 0 ? (
+            <div style={{ color: "#9ca3af", fontSize: 13 }}>No revenue data available.</div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 160 }}>
+              {monthlyRevenue.map((b, i) => {
+                const isMax = b.value === maxBarVal;
+                const heightPx = maxBarVal > 0 ? (b.value / maxBarVal) * 144 : 0;
+                return (
+                  <div key={b.month ?? i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                    <div style={{ width: "100%", background: isMax ? "#8b0000" : "#f5e0e0", borderRadius: "4px 4px 0 0", height: `${heightPx}px`, transition: "height 0.3s" }} />
+                    <span style={{ fontSize: 11, color: "#bbb", fontWeight: 500 }}>{b.month}</span>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </Card>
       </div>
