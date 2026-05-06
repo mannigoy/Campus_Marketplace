@@ -77,9 +77,9 @@ Features that enhance the experience but are not critical:
 
 | Feature | Status |
 |---|---|
-| Project Setup (React + Spring Boot) | 🔄 In Progress |
+| Project Setup (React + Spring Boot) | ✅ Done |
 | Product Listing | 🔄 In Progress |
-| Stock Management | ⏳ Planned |
+| Stock Management | 🔄 In Progress|
 | Search and Category Filter | ⏳ Planned |
 | Order System | ⏳ Planned |
 | Payment Integration | ⏳ Planned |
