@@ -267,3 +267,17 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.add-cart-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.product-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}

@@ -33,7 +33,7 @@ export default function Navbar({
 
   return (
     <nav className={`brand-bg navbar ${isMobile ? "mobile" : ""}`}>
-      <div className="nav-brand">
+      <div className="nav-brand" >
         <div className="nav-logo">CM</div>
         <div className="nav-title-wrap">
           <div className="brand-title-bold">{brandName}</div>
@@ -87,14 +87,20 @@ export default function Navbar({
             )}
 
             {showNotification && !isMobile && (
+              <Link to="/cart" className="nav-btn">
+                Cart 🛒
+              </Link>
+            )}
+
+            {showNotification && !isMobile && (
               <button type="button" className="nav-btn">
                 Notifications 🔔
               </button>
             )}
 
             <div className="nav-account">
-              <button type="button" className="nav-btn nav-account-btn">
-                <span className="nav-account-icon" aria-hidden="true">
+              <button type="button" className="nav-btn nav-account-btn" >
+                <span className="nav-account-icon" aria-hidden="true" >
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
                     <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.34 0-6 1.66-6 4v2h12v-2c0-2.34-2.66-4-6-4Z" />
                   </svg>

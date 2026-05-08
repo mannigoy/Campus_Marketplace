@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "products")
 public class Product {
@@ -30,9 +32,11 @@ public class Product {
     @Column(length = 120)
     private String category;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "seller_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "seller_id")
+    @JsonIgnoreProperties({"password_hash", "cart", "products"}) // Add this!
     private User seller;
+    
 
     public Long getId() { return id; }
     public String getName() { return name; }
