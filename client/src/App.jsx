@@ -15,6 +15,7 @@ import AdminDashboard from "./pages/AdminSide/AdminDashboard";
 import AdminSide from "./pages/AdminSide/AdminSide";
 import SellerApplication from "./pages/SellerApplication";
 import Unauthorized from "./pages/Unauthorized";
+import Cart from "./pages/Cart"
 import { useAuth } from "./AuthContext";
 
 
@@ -116,6 +117,9 @@ export default function App() {
           
           {/* Marketplace/Landing Page */}
           <Route path="/landing_page" element={<Marketplace />} />
+
+          {/* cart page */}
+          <Route path="/cart" element={<Cart />} />
           
           {/* Static Pages */}
           <Route path="/contact" element={<Contactpage />} />

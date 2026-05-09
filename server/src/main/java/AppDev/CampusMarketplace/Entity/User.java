@@ -1,4 +1,7 @@
 package AppDev.CampusMarketplace.Entity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 
 
@@ -29,8 +32,13 @@ public class User {
     @Column(nullable = false)
     private boolean isApprovedSeller = false;
 
+    @JsonManagedReference
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private SellerStore sellerStore;
+
+    @OneToOne(mappedBy = "user")
+    @JsonIgnore // Crucial to stop the loop when a User is nested inside a Product
+    private Cart cart;
 
     public Long getId() { return id; }
     public String getEmail() { return email; }
@@ -47,6 +55,8 @@ public class User {
     public void setApprovedSeller(boolean approvedSeller) { isApprovedSeller = approvedSeller; }
     public SellerStore getSellerStore() { return sellerStore; }
     public void setSellerStore(SellerStore sellerStore) { this.sellerStore = sellerStore; }
+    public Cart getCart() { return cart; }
+    public void setCart(Cart cart) { this.cart = cart; }
 }
 
 
