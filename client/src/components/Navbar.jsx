@@ -68,11 +68,17 @@ export default function Navbar({
               My Orders
             </button>
 
+            {/*
             {role === "CUSTOMER" && applicationStatus !== "PENDING" && (
               <button type="button" className="nav-btn" onClick={onApplySellerClick}>
                 Apply to be Seller
               </button>
             )}
+            */}
+
+
+             
+
 
             {role === "CUSTOMER" && applicationStatus === "PENDING" && (
               <button type="button" className="nav-btn" disabled>

@@ -1,5 +1,6 @@
 package AppDev.CampusMarketplace.Controller;
 
+import AppDev.CampusMarketplace.Entity.ProductStatus;
 import AppDev.CampusMarketplace.Model.ProductResponse;
 import AppDev.CampusMarketplace.Repository.ProductRepository;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +24,10 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<?> getAllProducts() {
         List<ProductResponse> products = productRepository.findAll()
-                .stream()
-                .map(ProductResponse::fromEntity)
-                .collect(Collectors.toList());
+            .stream()
+            .filter(product -> product.getStatus() == null || product.getStatus() == ProductStatus.ACTIVE)
+            .map(ProductResponse::fromEntity)
+            .collect(Collectors.toList());
         return ResponseEntity.ok(products);
     }
 }

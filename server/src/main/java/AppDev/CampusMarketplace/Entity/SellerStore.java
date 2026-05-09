@@ -20,6 +20,10 @@ public class SellerStore {
     @Column(length = 2000)
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StoreStatus status = StoreStatus.ACTIVE;
+
 
 
     @Column(name = "created_at", nullable = false)
@@ -35,6 +39,9 @@ public class SellerStore {
     public void setStoreName(String storeName) { this.storeName = storeName; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public StoreStatus getStatus() { return status; }
+    public void setStatus(StoreStatus status) { this.status = status; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

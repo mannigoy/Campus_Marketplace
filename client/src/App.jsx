@@ -12,6 +12,7 @@ import ShopPage from "./pages/ShopPage";
 import SignUpModal from "./Signupmodal";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminSide/AdminDashboard";
+import AdminSide from "./pages/AdminSide/AdminSide";
 import SellerApplication from "./pages/SellerApplication";
 import Unauthorized from "./pages/Unauthorized";
 import Cart from "./pages/Cart"
@@ -139,7 +140,7 @@ export default function App() {
             path="/admin"
             element={
               <ProtectedRoute requiredRoles={["ADMIN", "SUPERADMIN"]}>
-                <AdminDashboard />
+                <AdminSide />
               </ProtectedRoute>
             }
           />

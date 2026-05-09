@@ -12,6 +12,7 @@ public class ProductResponse {
     private Integer stockQuantity;
     private String imageUrl;
     private String category;
+    private String status;
 
     public static ProductResponse fromEntity(Product product) {
         ProductResponse response = new ProductResponse();
@@ -22,6 +23,7 @@ public class ProductResponse {
         response.stockQuantity = product.getStockQuantity();
         response.imageUrl = product.getImageUrl();
         response.category = product.getCategory();
+        response.status = product.getStatus() != null ? product.getStatus().name() : null;
         return response;
     }
 
@@ -32,4 +34,5 @@ public class ProductResponse {
     public Integer getStockQuantity() { return stockQuantity; }
     public String getImageUrl() { return imageUrl; }
     public String getCategory() { return category; }
+    public String getStatus() { return status; }
 }

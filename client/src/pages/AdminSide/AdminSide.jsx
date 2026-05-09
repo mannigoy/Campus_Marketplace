@@ -2,29 +2,30 @@ import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
 
 // Import your dashboard pages
-import DashboardPage from "./Dashboard";
-import ProductsPage from "./ProductsPage";
-import OrdersPage from "./Orders";
-import SettingsPage from "./SettingsPage";
+import DashboardPage from "./AdminDashboard";
+import ProductsPage from "./Products";
+import SellerApplication from "./SellerApplications";
+import Stores from "./Stores";
+import Users from "./Users";
 
-export default function SellerSide() {  // <-- Renamed from App to SellerSide
-  // This handles the navigation strictly inside the Seller Dashboard
+export default function AdminSide() { 
+
   const [page, setPage] = useState("dashboard");
 
   const renderPage = () => {
     switch (page) {
       case "dashboard": return <DashboardPage onNavigate={setPage} />;
+      case "users": return <Users />;
+      case "pending": return <SellerApplication />;
+      case "stores": return <Stores />;
       case "products": return <ProductsPage />;
-      case "orders": return <OrdersPage />;
-     
-      case "settings": return <SettingsPage />;
-      default: return <DashboardPage onNavigate={setPage} />;
+       default: return <DashboardPage onNavigate={setPage} />;
     }
   };
 
   return (
     // We override the height to 100vh so the dashboard fills the screen
-    <div style={{ display: "flex", height: "69vh", background: "#fafafa", overflow: "hidden" }}>
+    <div style={{ display: "flex", minHeight: "80vh", background: "#fafafa", overflow: "hidden" }}>
       <Sidebar active={page} onNavigate={setPage} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
        

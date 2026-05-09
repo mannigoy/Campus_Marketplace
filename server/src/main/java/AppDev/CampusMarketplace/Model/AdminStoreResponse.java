@@ -11,6 +11,7 @@ public class AdminStoreResponse {
     private String storeName;
     private String description;
     private String applicationStatus;
+    private String status;
     private LocalDateTime createdAt;
     private Long ownerId;
     private String ownerEmail;
@@ -26,6 +27,8 @@ public class AdminStoreResponse {
                 ? application.getStatus().name()
                 : "UNKNOWN";
 
+        response.status = store.getStatus() != null ? store.getStatus().name() : null;
+
         response.createdAt = store.getCreatedAt();
         if (store.getUser() != null) {
             response.ownerId = store.getUser().getId();
@@ -39,6 +42,7 @@ public class AdminStoreResponse {
     public String getStoreName() { return storeName; }
     public String getDescription() { return description; }
     public String getApplicationStatus() { return applicationStatus; }
+    public String getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public Long getOwnerId() { return ownerId; }
     public String getOwnerEmail() { return ownerEmail; }

@@ -1,17 +1,14 @@
 package AppDev.CampusMarketplace.Model;
 
-import AppDev.CampusMarketplace.Entity.ProductStatus;
-
 import java.math.BigDecimal;
 
-public class AdminProductUpdateRequest {
+public class ProductUpdateRequest {
     private String name;
     private String description;
     private BigDecimal price;
     private Integer stockQuantity;
     private String imageUrl;
     private String category;
-    private ProductStatus status;
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -25,6 +22,4 @@ public class AdminProductUpdateRequest {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
-    public ProductStatus getStatus() { return status; }
-    public void setStatus(ProductStatus status) { this.status = status; }
 }

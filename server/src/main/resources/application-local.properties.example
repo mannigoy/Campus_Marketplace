@@ -1,0 +1,20 @@
+## Local-only overrides (copy to application-local.properties)
+## This file is safe to commit; do NOT put real secrets here.
+
+# Database
+spring.datasource.password=
+
+# Mail
+spring.mail.username=
+spring.mail.password=
+
+# JWT
+jwt.secret=
+
+# RBAC
+app.superadmin.email=
+
+# Cloudinary
+cloudinary.cloud_name=
+cloudinary.api_key=
+cloudinary.api_secret=
