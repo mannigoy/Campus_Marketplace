@@ -9,6 +9,7 @@ import Contactpage from "./pages/Contactpage";
 import AboutUs from "./pages/AboutUs";
 import SellerSide from "./pages/SellerSide/SellerSide";
 import ShopPage from "./pages/ShopPage";
+import ProductDetails from "./pages/ProductDetails";
 import SignUpModal from "./Signupmodal";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminSide/AdminDashboard";
@@ -101,6 +102,7 @@ export default function App() {
         <Routes>
           {/* Main Shop/Home Page */}
           <Route path="/" element={<ShopPage />} />
+          <Route path="/products/:id" element={<ProductDetails />} />
           
           {/* Dashboard Page (shown after login) */}
           <Route path="/dashboard" element={<Dashboard />} />
