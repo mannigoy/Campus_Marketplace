@@ -78,17 +78,17 @@ Features that enhance the experience but are not critical:
 | Feature | Status |
 |---|---|
 | Project Setup (React + Spring Boot) | ✅ Done |
-| Product Listing | 🔄 In Progress |
-| Stock Management | 🔄 In Progress|
-| Search and Category Filter | ⏳ Planned |
+| Product Listing | ✅ Done  |
+| Stock Management | ✅ Done |
+| Search and Category Filter | ✅ Done  |
 | Order System | ⏳ Planned |
 | Payment Integration | ⏳ Planned |
 | Pick-up Schedule | ⏳ Planned |
 | Notifications | ⏳ Planned |
 | Order History | ⏳ Planned |
-| Product Details (CRUD) | 🔄 In Progress |
+| Product Details (CRUD) | ✅ Done  |
 | Ratings & Reviews | ⏳ Planned |
-| Seller Dashboard | 🔄 In Progress|
+| Seller Dashboard | ✅ Done |
 | AI Recommendations | ⏳ Planned |
 
 > **Legend:** ✅ Done &nbsp;|&nbsp; 🔄 In Progress &nbsp;|&nbsp; ⏳ Planned
