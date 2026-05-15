@@ -1,6 +1,5 @@
 package AppDev.CampusMarketplace;
 
-import AppDev.CampusMarketplace.Security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -10,6 +9,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import AppDev.CampusMarketplace.Security.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -35,7 +36,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/shops/**").permitAll()
                 .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPERADMIN")
-                .requestMatchers("/api/cart/**").authenticated()
+                .requestMatchers("/api/cart/**", "/api/orders/**").authenticated()
                 .anyRequest().authenticated()
             )
             // 3. Ensure JWT filter is added correctly

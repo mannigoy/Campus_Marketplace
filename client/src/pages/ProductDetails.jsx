@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import useAddToCart from "../hooks/useAddToCart";
 import MessageBox from "../components/MessageBox";
@@ -8,6 +8,7 @@ import denImg from "../assets/den.jpg";
 
 export default function ProductDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [cartMessage, setCartMessage] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const addToCart = useAddToCart(setCartMessage);
@@ -80,11 +81,12 @@ export default function ProductDetails() {
   };
 
   const handleBuyNow = async () => {
-    const added = await addToCart(product, quantity);
-    if (added) {
-      window.location.href = "/checkout";
-    }
-  };
+  const added = await addToCart(product, quantity);
+
+  if (added) {
+    navigate("/checkout");
+  }
+};
 
   if (loading) {
     return (

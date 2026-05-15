@@ -20,7 +20,9 @@ import AdminSide from "./pages/AdminSide/AdminSide";
 import SellerApplication from "./pages/SellerApplication";
 import Unauthorized from "./pages/Unauthorized";
 import Cart from "./pages/Cart"
+import Checkout from "./pages/Checkout"
 import { useAuth } from "./AuthContext";
+import MyOrders from "./pages/MyOrders";
 
 
 export default function App() {
@@ -88,7 +90,7 @@ export default function App() {
         */}
       {/* {!isSellerDashboard && ( */}
         <Navbar
-          onOrdersClick={() => navigate("/orders")}
+          onOrdersClick={() => navigate("/my-orders")}
           onSignInClick={openSignIn}
           isLoggedIn={!!user}
           username={user?.username || ""}
@@ -109,6 +111,7 @@ export default function App() {
           <Route path="/products/:id" element={<ProductDetails />} />
           <Route path="/category/:categoryId" element={<CategoryDetails />} />
           <Route path="/shop/:shopId" element={<ShopDetails />} />
+          <Route path="/my-orders" element={<MyOrders />} />
           
           {/* Dashboard Page (shown after login) */}
           <Route path="/dashboard" element={<Dashboard />} />
@@ -128,6 +131,7 @@ export default function App() {
 
           {/* cart page */}
           <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
           
           {/* Static Pages */}
           <Route path="/contact" element={<Contactpage />} />
