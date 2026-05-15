@@ -1,6 +1,7 @@
 package AppDev.CampusMarketplace.Model;
 
 import AppDev.CampusMarketplace.Entity.Product;
+import AppDev.CampusMarketplace.Entity.SellerStore;
 
 import java.math.BigDecimal;
 
@@ -27,10 +28,14 @@ public class ProductResponse {
         response.imageUrl = product.getImageUrl();
         response.category = product.getCategory();
         response.status = product.getStatus() != null ? product.getStatus().name() : null;
-        if (product.getSeller() != null && product.getSeller().getSellerStore() != null) {
-            response.storeId = product.getSeller().getSellerStore().getId();
-            response.storeName = product.getSeller().getSellerStore().getStoreName();
-            response.storeImageUrl = product.getSeller().getSellerStore().getImageUrl();
+        SellerStore store = product.getStore();
+        if (store == null && product.getSeller() != null) {
+            store = product.getSeller().getSellerStore();
+        }
+        if (store != null) {
+            response.storeId = store.getId();
+            response.storeName = store.getStoreName();
+            response.storeImageUrl = store.getImageUrl();
         }
         return response;
     }

@@ -26,7 +26,11 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
   const [error, setError] = useState("");
 
   const [editingStoreId, setEditingStoreId] = useState(null);
-  const [storeForm, setStoreForm] = useState({ storeName: "", description: "" });
+  const [storeForm, setStoreForm] = useState({ storeName: "", description: "", imageUrl: "" });
+  const [editImageFile, setEditImageFile] = useState(null);
+  const [editImagePreview, setEditImagePreview] = useState("");
+  const [editUploading, setEditUploading] = useState(false);
+  const [editUploadError, setEditUploadError] = useState("");
 
   const [showStoreForm, setShowStoreForm] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -212,7 +216,75 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
 
   const startEdit = (store) => {
     setEditingStoreId(store.id);
-    setStoreForm({ storeName: store.storeName || "", description: store.description || "" });
+    setStoreForm({
+      storeName: store.storeName || "",
+      description: store.description || "",
+      imageUrl: store.imageUrl || "",
+    });
+    setEditImageFile(null);
+    setEditImagePreview(store.imageUrl || "");
+    setEditUploadError("");
+  };
+
+  const stopEdit = () => {
+    setEditingStoreId(null);
+    setEditImageFile(null);
+    setEditImagePreview("");
+    setEditUploadError("");
+  };
+
+  const handleEditImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setEditUploadError("");
+
+    if (!file.type.startsWith("image/")) {
+      setEditUploadError("Please choose an image file.");
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      setEditUploadError(`Max file size is ${MAX_IMAGE_SIZE_MB}MB.`);
+      return;
+    }
+
+    setEditImageFile(file);
+    setEditImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleEditUploadImage = async () => {
+    setEditUploadError("");
+
+    if (!editImageFile) return;
+
+    if (!CLOUDINARY_UPLOAD_PRESET) {
+      setEditUploadError("Cloudinary preset missing.");
+      return;
+    }
+
+    setEditUploading(true);
+
+    try {
+      const fd = new FormData();
+      fd.append("file", editImageFile);
+      fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+      fd.append("folder", CLOUDINARY_FOLDER);
+
+      const res = await axios.post(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        fd
+      );
+
+      setStoreForm((prev) => ({
+        ...prev,
+        imageUrl: res.data.secure_url,
+      }));
+    } catch {
+      setEditUploadError("Image upload failed.");
+    } finally {
+      setEditUploading(false);
+    }
   };
 
   const saveStore = async (storeId) => {
@@ -220,12 +292,16 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
       const res = await fetch(`${API_BASE}/admin/stores/${storeId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ storeName: storeForm.storeName, description: storeForm.description }),
+        body: JSON.stringify({
+          storeName: storeForm.storeName,
+          description: storeForm.description,
+          imageUrl: storeForm.imageUrl || null,
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Failed to update store."); return; }
       setStores((prev) => prev.map((s) => (s.id === storeId ? data : s)));
-      setEditingStoreId(null);
+      stopEdit();
     } catch {
       setError("Cannot reach server.");
     }
@@ -378,6 +454,36 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
                             placeholder="Store description"
                             style={{ marginTop: 6 }}
                           />
+                          <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
+                            <input type="file" accept="image/*" onChange={handleEditImageSelect} />
+                            {editImagePreview && (
+                              <img
+                                src={editImagePreview}
+                                alt="Preview"
+                                style={{
+                                  width: 90,
+                                  height: 90,
+                                  objectFit: "cover",
+                                  borderRadius: 8,
+                                  border: "1px solid #e5e7eb",
+                                }}
+                              />
+                            )}
+                            <button
+                              type="button"
+                              className="btn-sm-primary"
+                              onClick={handleEditUploadImage}
+                              disabled={!editImageFile || editUploading}
+                              style={{ width: "fit-content" }}
+                            >
+                              {editUploading ? "Uploading..." : "Upload Image"}
+                            </button>
+                            {editUploadError && (
+                              <div style={{ fontSize: 12, color: "#b91c1c" }}>
+                                {editUploadError}
+                              </div>
+                            )}
+                          </div>
                         </>
                       ) : (
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -401,7 +507,7 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
                       {editingStoreId === store.id ? (
                         <div className="admin-action-group">
                           <button className="btn-sm-primary" onClick={() => saveStore(store.id)}>Save</button>
-                          <button className="btn-sm-secondary" onClick={() => setEditingStoreId(null)}>Cancel</button>
+                          <button className="btn-sm-secondary" onClick={stopEdit}>Cancel</button>
                         </div>
                       ) : (
                         <div className="admin-action-group">

@@ -162,6 +162,14 @@ public class SellerDashboardController {
     public ResponseEntity<?> createProduct(@RequestBody ProductRequest request) {
         User user = getCurrentUser();
 
+        SellerStore sellerStore = user.getSellerStore();
+        if (sellerStore == null) {
+            sellerStore = sellerStoreRepository.findByUserId(user.getId()).orElse(null);
+        }
+        if (sellerStore == null) {
+            return ResponseEntity.status(404).body(Map.of("error", "Store not found for this account."));
+        }
+
         if (request.getName() == null || request.getName().isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Name is required."));
         }
@@ -181,6 +189,7 @@ public class SellerDashboardController {
         product.setCategory(request.getCategory());
         product.setStatus(ProductStatus.ACTIVE);
         product.setSeller(user);
+        product.setStore(sellerStore);
 
         Product saved = productRepository.save(product);
         return ResponseEntity.ok(ProductResponse.fromEntity(saved));

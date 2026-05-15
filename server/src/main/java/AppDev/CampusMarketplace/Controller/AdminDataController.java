@@ -144,9 +144,12 @@ public class AdminDataController {
         }
 
         SellerStore saved = sellerStoreRepository.save(store);
-        SellerApplication application =  sellerApplicationRepository
+        SellerApplication application = null;
+        if (saved.getUser() != null) {
+            application = sellerApplicationRepository
                 .findByUserId(saved.getUser().getId())
                 .orElse(null);
+        }
 
         return ResponseEntity.ok(AdminStoreResponse.fromEntity(saved, application));
     }
@@ -196,7 +199,10 @@ public class AdminDataController {
         product.setStockQuantity(request.getStockQuantity());
         product.setImageUrl(request.getImageUrl());
         product.setCategory(request.getCategory());
-        product.setSeller(store.getUser());
+        product.setStore(store);
+        if (store.getUser() != null) {
+            product.setSeller(store.getUser());
+        }
         product.setStatus(request.getStatus() != null ? request.getStatus() : ProductStatus.ACTIVE);
 
         Product saved = productRepository.save(product);

@@ -2,6 +2,7 @@ package AppDev.CampusMarketplace.Controller;
 
 import AppDev.CampusMarketplace.Entity.Category;
 import AppDev.CampusMarketplace.Entity.ProductStatus;
+import AppDev.CampusMarketplace.Entity.SellerStore;
 import AppDev.CampusMarketplace.Model.ProductResponse;
 import AppDev.CampusMarketplace.Repository.CategoryRepository;
 import AppDev.CampusMarketplace.Repository.ProductRepository;
@@ -50,8 +51,12 @@ public class ProductController {
                 .filter(product -> product.getStatus() == null || product.getStatus() == ProductStatus.ACTIVE)
                 .filter(product -> {
                     if (shopId == null) return true;
-                    if (product.getSeller() == null || product.getSeller().getSellerStore() == null) return false;
-                    return shopId.equals(product.getSeller().getSellerStore().getId());
+                    SellerStore store = product.getStore();
+                    if (store == null && product.getSeller() != null) {
+                        store = product.getSeller().getSellerStore();
+                    }
+                    if (store == null) return false;
+                    return shopId.equals(store.getId());
                 })
                 .filter(product -> {
                     if (finalFilterCategory == null) return true;

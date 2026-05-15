@@ -1,6 +1,7 @@
 package AppDev.CampusMarketplace.Model;
 
 import AppDev.CampusMarketplace.Entity.Product;
+import AppDev.CampusMarketplace.Entity.SellerStore;
 
 import java.math.BigDecimal;
 
@@ -15,6 +16,8 @@ public class AdminProductResponse {
     private String status;
     private Long sellerId;
     private String storeName;
+    private Long storeId;
+    private String storeImageUrl;
 
     public static AdminProductResponse fromEntity(Product product) {
         AdminProductResponse response = new AdminProductResponse();
@@ -28,9 +31,16 @@ public class AdminProductResponse {
         response.status = product.getStatus() != null ? product.getStatus().name() : null;
         if (product.getSeller() != null) {
             response.sellerId = product.getSeller().getId();
-            if (product.getSeller().getSellerStore() != null) {
-                response.storeName = product.getSeller().getSellerStore().getStoreName();
-            }
+        }
+
+        SellerStore store = product.getStore();
+        if (store == null && product.getSeller() != null) {
+            store = product.getSeller().getSellerStore();
+        }
+        if (store != null) {
+            response.storeId = store.getId();
+            response.storeName = store.getStoreName();
+            response.storeImageUrl = store.getImageUrl();
         }
         return response;
     }
@@ -45,4 +55,6 @@ public class AdminProductResponse {
     public String getStatus() { return status; }
     public Long getSellerId() { return sellerId; }
     public String getStoreName() { return storeName; }
+    public Long getStoreId() { return storeId; }
+    public String getStoreImageUrl() { return storeImageUrl; }
 }

@@ -37,14 +37,24 @@ public class ShopController {
                 .filter(store -> store.getStatus() == null || store.getStatus() == StoreStatus.ACTIVE)
                 .collect(Collectors.toList());
 
-        Map<Long, Long> counts = productRepository.findAll()
+                Map<Long, Long> counts = productRepository.findAll()
                 .stream()
                 .filter(product -> product.getStatus() == null || product.getStatus() == ProductStatus.ACTIVE)
-                .filter(product -> product.getSeller() != null
-                        && product.getSeller().getSellerStore() != null
-                        && product.getSeller().getSellerStore().getId() != null)
+                                .filter(product -> {
+                                        SellerStore store = product.getStore();
+                                        if (store == null && product.getSeller() != null) {
+                                                store = product.getSeller().getSellerStore();
+                                        }
+                                        return store != null && store.getId() != null;
+                                })
                 .collect(Collectors.groupingBy(
-                        product -> product.getSeller().getSellerStore().getId(),
+                                                product -> {
+                                                        SellerStore store = product.getStore();
+                                                        if (store == null && product.getSeller() != null) {
+                                                                store = product.getSeller().getSellerStore();
+                                                        }
+                                                        return store.getId();
+                                                },
                         Collectors.counting()
                 ));
 
@@ -65,9 +75,13 @@ public class ShopController {
         long count = productRepository.findAll()
                 .stream()
                 .filter(product -> product.getStatus() == null || product.getStatus() == ProductStatus.ACTIVE)
-                .filter(product -> product.getSeller() != null
-                        && product.getSeller().getSellerStore() != null
-                        && shopId.equals(product.getSeller().getSellerStore().getId()))
+                .filter(product -> {
+                    SellerStore productStore = product.getStore();
+                    if (productStore == null && product.getSeller() != null) {
+                        productStore = product.getSeller().getSellerStore();
+                    }
+                    return productStore != null && shopId.equals(productStore.getId());
+                })
                 .count();
 
         return ResponseEntity.ok(ShopResponse.fromEntity(store, (int) count));
@@ -88,9 +102,13 @@ public class ShopController {
         List<ProductResponse> products = productRepository.findAll()
                 .stream()
                 .filter(product -> product.getStatus() == null || product.getStatus() == ProductStatus.ACTIVE)
-                .filter(product -> product.getSeller() != null
-                        && product.getSeller().getSellerStore() != null
-                        && shopId.equals(product.getSeller().getSellerStore().getId()))
+                .filter(product -> {
+                    SellerStore productStore = product.getStore();
+                    if (productStore == null && product.getSeller() != null) {
+                        productStore = product.getSeller().getSellerStore();
+                    }
+                    return productStore != null && shopId.equals(productStore.getId());
+                })
                 .filter(product -> {
                     if (search == null || search.isBlank()) return true;
                     String needle = search.trim().toLowerCase();

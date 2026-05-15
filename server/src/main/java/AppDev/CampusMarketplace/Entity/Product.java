@@ -41,6 +41,11 @@ public class Product {
     @JoinColumn(name = "seller_id")
     @JsonIgnoreProperties({"password_hash", "cart", "products"}) // Add this!
     private User seller;
+
+    @ManyToOne
+    @JoinColumn(name = "store_id")
+    @JsonIgnoreProperties({"user", "createdBy"})
+    private SellerStore store;
     
 
     public Long getId() { return id; }
@@ -60,4 +65,6 @@ public class Product {
     public void setStatus(ProductStatus status) { this.status = status; }
     public User getSeller() { return seller; }
     public void setSeller(User seller) { this.seller = seller; }
+    public SellerStore getStore() { return store; }
+    public void setStore(SellerStore store) { this.store = store; }
 }
