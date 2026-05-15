@@ -18,6 +18,8 @@ import AppDev.CampusMarketplace.Repository.SellerApplicationRepository;
 import AppDev.CampusMarketplace.Repository.SellerStoreRepository;
 import AppDev.CampusMarketplace.Repository.UserRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,9 +64,12 @@ public class AdminDataController {
         List<AdminStoreResponse> stores = sellerStoreRepository.findAll()
                 .stream()
                 .map(store -> {
-                    SellerApplication application = sellerApplicationRepository
-                            .findByUserId(store.getUser().getId())
-                            .orElse(null);
+                    SellerApplication application = null;
+                    if (store.getUser() != null) {
+                        application = sellerApplicationRepository
+                                .findByUserId(store.getUser().getId())
+                                .orElse(null);
+                    }
                     return AdminStoreResponse.fromEntity(store, application);
                 })
                 .collect(Collectors.toList());
@@ -73,39 +78,48 @@ public class AdminDataController {
 
     @PostMapping("/stores")
     public ResponseEntity<?> createStore(@RequestBody AdminStoreCreateRequest request) {
-        if (request.getOwnerId() == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Owner is required."));
-        }
         if (request.getStoreName() == null || request.getStoreName().isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Store name is required."));
         }
 
-        User owner = userRepository.findById(request.getOwnerId())
-                .orElseThrow(() -> new RuntimeException("Owner not found."));
+        User owner = null;
+        if (request.getOwnerId() != null) {
+            owner = userRepository.findById(request.getOwnerId())
+                    .orElseThrow(() -> new RuntimeException("Owner not found."));
 
-        if (sellerStoreRepository.findByUserId(owner.getId()).isPresent()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "User already has a store."));
+            if (sellerStoreRepository.findByUserId(owner.getId()).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "User already has a store."));
+            }
         }
 
         SellerStore store = new SellerStore();
         store.setStoreName(request.getStoreName());
         store.setDescription(request.getDescription());
-        store.setUser(owner);
+        store.setImageUrl(request.getImageUrl());
+        store.setCreatedBy(getCurrentUser());
+        if (owner != null) {
+            store.setUser(owner);
+        }
         if (request.getStatus() != null) {
             store.setStatus(request.getStatus());
         }
 
         SellerStore saved = sellerStoreRepository.save(store);
-        owner.setSellerStore(saved);
-        owner.setApprovedSeller(true);
-        if (owner.getRole() == null || owner.getRole() == Role.CUSTOMER) {
-            owner.setRole(Role.SELLER);
+        if (owner != null) {
+            owner.setSellerStore(saved);
+            owner.setApprovedSeller(true);
+            if (owner.getRole() == null || owner.getRole() == Role.CUSTOMER) {
+                owner.setRole(Role.SELLER);
+            }
+            userRepository.save(owner);
         }
-        userRepository.save(owner);
 
-        SellerApplication application = sellerApplicationRepository
-                .findByUserId(saved.getUser().getId())
-                .orElse(null);
+        SellerApplication application = null;
+        if (saved.getUser() != null) {
+            application = sellerApplicationRepository
+                    .findByUserId(saved.getUser().getId())
+                    .orElse(null);
+        }
 
         return ResponseEntity.ok(AdminStoreResponse.fromEntity(saved, application));
     }
@@ -122,6 +136,9 @@ public class AdminDataController {
         if (request.getDescription() != null) {
             store.setDescription(request.getDescription());
         }
+        if (request.getImageUrl() != null) {
+            store.setImageUrl(request.getImageUrl());
+        }
         if (request.getStatus() != null) {
             store.setStatus(request.getStatus());
         }
@@ -132,6 +149,17 @@ public class AdminDataController {
                 .orElse(null);
 
         return ResponseEntity.ok(AdminStoreResponse.fromEntity(saved, application));
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new RuntimeException("Unauthorized.");
+        }
+
+        String email = authentication.getPrincipal().toString();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found."));
     }
 
     @GetMapping("/products")

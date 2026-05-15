@@ -1,7 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function ProductCard({ product, onAddToCart, fallbackImage }) {
+export default function ProductCard({
+  product,
+  onAddToCart,
+  fallbackImage,
+  showStoreName = false,
+}) {
   const navigate = useNavigate();
 
   if (!product) return null;
@@ -42,8 +47,12 @@ export default function ProductCard({ product, onAddToCart, fallbackImage }) {
         {product.id % 2 === 0 && <span className="new-badge">NEW</span>}
       </div>
 
+      {showStoreName && product.storeName && (
+        <span className="product-store">{product.storeName}</span>
+      )}
       <span className="product-brand">{product.category || "General"}</span>
       <span className="product-name">{product.name}</span>
+
 
       <div className="product-bottom">
         <span className="product-price">

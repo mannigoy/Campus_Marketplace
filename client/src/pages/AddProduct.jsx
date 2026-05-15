@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card } from "../components/Shared";
 import { useAuth } from "../AuthContext";
@@ -14,13 +14,6 @@ const CLOUDINARY_UPLOAD_PRESET =
   import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "";
 const CLOUDINARY_FOLDER =
   import.meta.env.VITE_CLOUDINARY_FOLDER || "campus_marketplace";
-
-const CATEGORY_OPTIONS = [
-  "Food and Beverages",
-  "Stickers and Pins",
-  "CIT-U Official Items",
-  "Other",
-];
 
 export default function AddProduct({ mode = "seller", stores = [], onSuccess, onCancel }) {
   const { token } = useAuth();
@@ -42,6 +35,27 @@ export default function AddProduct({ mode = "seller", stores = [], onSuccess, on
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [categoryLoading, setCategoryLoading] = useState(false);
+  const [categoryError, setCategoryError] = useState("");
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      setCategoryLoading(true);
+      setCategoryError("");
+      try {
+        const res = await axios.get(`${API_BASE}/categories`);
+        setCategoryOptions(Array.isArray(res.data) ? res.data : []);
+      } catch {
+        setCategoryOptions([]);
+        setCategoryError("Failed to load categories.");
+      } finally {
+        setCategoryLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
 
   const handleFormChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -223,12 +237,22 @@ export default function AddProduct({ mode = "seller", stores = [], onSuccess, on
             value={form.category}
             onChange={handleFormChange}
             style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" }}
+            disabled={categoryLoading}
           >
             <option value="">Select a category</option>
-            {CATEGORY_OPTIONS.map((option) => (
-              <option key={option}>{option}</option>
+            {categoryLoading && <option disabled>Loading categories...</option>}
+            {!categoryLoading && categoryOptions.length === 0 && (
+              <option disabled>No categories yet</option>
+            )}
+            {!categoryLoading && categoryOptions.map((option) => (
+              <option key={option.id || option.name} value={option.name}>
+                {option.name}
+              </option>
             ))}
           </select>
+          {categoryError && (
+            <div style={{ fontSize: 12, color: "#b91c1c" }}>{categoryError}</div>
+          )}
         </div>
 
         {/* Image */}

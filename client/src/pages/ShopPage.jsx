@@ -1,23 +1,25 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { Link } from "react-router-dom";
 import "../styles/shop.css"; 
 import ProductCard from "../components/ProductCard";
+import ShopCard from "../components/ShopCard";
 import useAddToCart from "../hooks/useAddToCart";
 import MessageBox from "../components/MessageBox";
+import { getCategories, getProducts, getShops } from "../api/catalogApi";
 
 // Internal assets
 import denImg from "../assets/den.jpg";
-
-const categories = [
-  { title: "Food and Beverages", shopLabel: "Shop Food", image: denImg },
-  { title: "Stickers and Pins", shopLabel: "Shop Stickers", image: denImg },
-  { title: "CIT-U Official Items", shopLabel: "Shop Official", image: denImg },
-];
 
 export default function ShopPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState("");
+  const [shops, setShops] = useState([]);
+  const [shopsLoading, setShopsLoading] = useState(true);
+  const [shopsError, setShopsError] = useState("");
   const [cartMessage, setCartMessage] = useState(null);
   const addToCart = useAddToCart(setCartMessage);
 
@@ -26,12 +28,8 @@ export default function ShopPage() {
     const loadProducts = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("http://localhost:8080/api/products");
-        console.log("Full API Response:", res.data); // Look at this in F12 Console!
-        
-        // If your backend returns an object with a products list inside:
-        const fetchedProducts = res.data.products || res.data; 
-        setProducts(Array.isArray(fetchedProducts) ? fetchedProducts : []);
+        const { items } = await getProducts({ size: 6, sort: "name_asc" });
+        setProducts(Array.isArray(items) ? items : []);
       } catch (err) {
         console.error("Fetch error:", err);
         setProducts([]);
@@ -41,6 +39,44 @@ export default function ShopPage() {
     };
 
     loadProducts();
+  }, []);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      setCategoriesLoading(true);
+      setCategoriesError("");
+      try {
+        const data = await getCategories();
+        setCategories(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Category fetch error:", err);
+        setCategories([]);
+        setCategoriesError("Failed to load categories.");
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    const loadShops = async () => {
+      setShopsLoading(true);
+      setShopsError("");
+      try {
+        const data = await getShops();
+        setShops(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Shop fetch error:", err);
+        setShops([]);
+        setShopsError("Failed to load shops.");
+      } finally {
+        setShopsLoading(false);
+      }
+    };
+
+    loadShops();
   }, []);
 
   useEffect(() => {
@@ -70,27 +106,77 @@ export default function ShopPage() {
         </div>
 
         <div className="category-grid">
-          {categories.map((cat) => (
-            <div key={cat.title} className="category-card">
-              <img src={cat.image} alt={cat.title} className="category-image" />
+          {categoriesLoading && (
+            <div className="section-text">Loading categories...</div>
+          )}
+
+          {!categoriesLoading && categoriesError && (
+            <div className="section-text" style={{ color: "#b91c1c" }}>
+              {categoriesError}
+            </div>
+          )}
+
+          {!categoriesLoading && !categoriesError && categories.length === 0 && (
+            <div className="section-text">No categories available yet.</div>
+          )}
+
+          {!categoriesLoading && !categoriesError && categories.map((cat) => (
+            <Link
+              key={cat.id || cat.name}
+              to={`/category/${cat.id}`}
+              className="category-card category-card-clickable"
+            >
+              <img src={denImg} alt={cat.name} className="category-image" />
               <div className="category-overlay" />
               <div className="category-content">
-                <div className="category-card-title">{cat.title}</div>
-                <a href="#" className="category-link">{cat.shopLabel}</a>
+                <div className="category-card-title">{cat.name}</div>
+                <span className="category-link">
+                  {cat.description || "Shop Now"}
+                </span>
               </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* BROWSE SHOPS SECTION */}
+      <section className="section section-gray">
+        <div className="section-header">
+          <div>
+            <h2 className="section-title">Browse Shops</h2>
+            <p className="section-text">Discover campus organizations and storefronts.</p>
+          </div>
+        </div>
+
+        <div className="shops-grid">
+          {shopsLoading && (
+            <div className="section-text">Loading shops...</div>
+          )}
+
+          {!shopsLoading && shopsError && (
+            <div className="section-text" style={{ color: "#b91c1c" }}>
+              {shopsError}
             </div>
+          )}
+
+          {!shopsLoading && !shopsError && shops.length === 0 && (
+            <div className="section-text">No shops available yet.</div>
+          )}
+
+          {!shopsLoading && !shopsError && shops.map((shop) => (
+            <ShopCard key={shop.id || shop.name} shop={shop} fallbackImage={denImg} />
           ))}
         </div>
       </section>
 
       {/* PRODUCTS SECTION */}
-      <section className="section section-gray">
+      <section className="section">
         <div className="section-header">
           <div>
             <h2 className="section-title">Trending Products</h2>
             <p className="section-text">Popular items from the latest campus releases.</p>
           </div>
-          <a href="#" className="view-all-link">View All Products</a>
+          <Link to="/products" className="view-all-link">View All Products</Link>
         </div>
 
         {error && (

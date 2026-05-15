@@ -7,6 +7,7 @@ import ProductsPage from "./Products";
 import SellerApplication from "./SellerApplications";
 import Stores from "./Stores";
 import Users from "./Users";
+import Categories from "./Categories";
 
 export default function AdminSide() { 
 
@@ -19,6 +20,7 @@ export default function AdminSide() {
       case "pending": return <SellerApplication />;
       case "stores": return <Stores />;
       case "products": return <ProductsPage />;
+      case "categories": return <Categories />;
        default: return <DashboardPage onNavigate={setPage} />;
     }
   };

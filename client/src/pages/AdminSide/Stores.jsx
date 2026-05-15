@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Card, StatusBadge } from "../../components/Shared";
 import { useAuth } from "../../AuthContext";
 import "../../styles/admin.css";
 
 const API_BASE = "http://localhost:8080/api";
+
+const MAX_IMAGE_SIZE_MB = 30;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+
+const CLOUDINARY_CLOUD_NAME =
+  import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "dlljmtv5g";
+const CLOUDINARY_UPLOAD_PRESET =
+  import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "";
+const CLOUDINARY_FOLDER =
+  import.meta.env.VITE_CLOUDINARY_FOLDER || "campus_marketplace";
 
 export default function Stores({ token: tokenProp, users: usersProp = [], onLoadUsers }) {
   const { token: contextToken } = useAuth();
@@ -20,7 +31,11 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
   const [showStoreForm, setShowStoreForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
-  const [createForm, setCreateForm] = useState({ storeName: "", description: "", ownerId: "" });
+  const [createForm, setCreateForm] = useState({ storeName: "", description: "", ownerId: "", imageUrl: "" });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   const loadStores = async () => {
     setLoading(true);
@@ -85,15 +100,74 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
   };
 
   const resetCreateForm = () => {
-    setCreateForm({ storeName: "", description: "", ownerId: "" });
+    setCreateForm({ storeName: "", description: "", ownerId: "", imageUrl: "" });
     setCreateError("");
+    setImageFile(null);
+    setImagePreview("");
+    setUploadError("");
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setCreateError("");
+    setUploadError("");
+
+    if (!file.type.startsWith("image/")) {
+      setCreateError("Please choose an image file.");
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      setCreateError(`Max file size is ${MAX_IMAGE_SIZE_MB}MB.`);
+      return;
+    }
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleUploadImage = async () => {
+    setCreateError("");
+    setUploadError("");
+
+    if (!imageFile) return;
+
+    if (!CLOUDINARY_UPLOAD_PRESET) {
+      setUploadError("Cloudinary preset missing.");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const fd = new FormData();
+      fd.append("file", imageFile);
+      fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+      fd.append("folder", CLOUDINARY_FOLDER);
+
+      const res = await axios.post(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        fd
+      );
+
+      setCreateForm((prev) => ({
+        ...prev,
+        imageUrl: res.data.secure_url,
+      }));
+    } catch {
+      setUploadError("Image upload failed.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleCreate = async (e) => {
     e.preventDefault();
     setCreateError("");
     if (!createForm.storeName.trim()) { setCreateError("Store name is required."); return; }
-    if (!createForm.ownerId) { setCreateError("Owner is required."); return; }
+    if (imageFile && !createForm.imageUrl) { setCreateError("Upload image first."); return; }
 
     setCreating(true);
     try {
@@ -103,7 +177,8 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
         body: JSON.stringify({
           storeName: createForm.storeName.trim(),
           description: createForm.description.trim() || null,
-          ownerId: Number(createForm.ownerId),
+          imageUrl: createForm.imageUrl || null,
+          ownerId: createForm.ownerId ? Number(createForm.ownerId) : null,
         }),
       });
       const data = await res.json();
@@ -112,7 +187,7 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
       setShowStoreForm(false);
       resetCreateForm();
     } catch {
-      setCreateError("Cannot reach server.");
+      setCreateError("Failed to create store.");
     } finally {
       setCreating(false);
     }
@@ -175,14 +250,14 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
                 />
               </div>
               <div className="admin-form-field">
-                <label htmlFor="store-owner" className="admin-form-label">Owner</label>
+                <label htmlFor="store-owner" className="admin-form-label">Owner (optional)</label>
                 <select
                   id="store-owner"
                   className="admin-form-select"
                   value={createForm.ownerId}
                   onChange={(e) => setCreateForm((p) => ({ ...p, ownerId: e.target.value }))}
                 >
-                  <option value="">Select owner</option>
+                  <option value="">Assign later</option>
                   {users.map((user) => (
                     <option key={user.id} value={user.id}>
                       {(user.username || user.email) + (user.role ? ` · ${user.role}` : "")}
@@ -201,9 +276,51 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
                   placeholder="Short store description"
                 />
               </div>
+              <div className="admin-form-field">
+                <label className="admin-form-label">Store Image</label>
+                <input type="file" accept="image/*" onChange={handleImageSelect} />
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    style={{
+                      width: 140,
+                      height: 140,
+                      objectFit: "cover",
+                      borderRadius: 10,
+                      border: "1px solid #e5e7eb",
+                      marginTop: 10,
+                    }}
+                  />
+                )}
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  
+                  onClick={handleUploadImage}
+                  disabled={!imageFile || uploading}
+                  style={{  width: "fit-content",
+                    background: "#800020",
+                    color: "white",
+                    border: "none", }}
+                >
+                  {uploading ? "Uploading..." : "Upload to Cloudinary"}
+                </button>
+                {uploadError && (
+                  <div style={{ fontSize: 12, color: "#b91c1c", marginTop: 6 }}>
+                    {uploadError}
+                  </div>
+                )}
+              </div>
               {createError && <div className="admin-error" style={{ borderRadius: 8 }}>{createError}</div>}
               <div className="admin-form-actions">
-                <button type="button" className="btn-secondary" onClick={() => { setShowStoreForm(false); resetCreateForm(); }}>
+                <button type="button" className="btn-secondary" onClick={() => { setShowStoreForm(false); resetCreateForm(); }}
+                   style={{
+                    background: "white",
+                    color: "black",
+                    border: "1px solid black",
+                    boxShadow: "none",
+                  }}>
                   Cancel
                 </button>
                 <button type="submit" className="btn-primary" disabled={creating}>
@@ -234,7 +351,7 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
           <table className="admin-table">
             <thead>
               <tr>
-                {["Store", "Owner", "Application", "Status", "Created", "Actions"].map((h) => (
+                {["Store", "Owner", "Created By", "Application", "Status", "Created", "Actions"].map((h) => (
                   <th key={h}>{h}</th>
                 ))}
               </tr>
@@ -263,10 +380,20 @@ export default function Stores({ token: tokenProp, users: usersProp = [], onLoad
                           />
                         </>
                       ) : (
-                        store.storeName
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          {store.imageUrl && (
+                            <img
+                              src={store.imageUrl}
+                              alt={store.storeName}
+                              style={{ width: 46, height: 46, borderRadius: 8, objectFit: "cover", border: "1px solid #f0e8e8" }}
+                            />
+                          )}
+                          <div>{store.storeName}</div>
+                        </div>
                       )}
                     </td>
-                    <td>{store.ownerUsername || store.ownerEmail || "—"}</td>
+                    <td>{store.ownerUsername || store.ownerEmail || "Unassigned"}</td>
+                    <td>{store.createdByUsername || store.createdByEmail || "—"}</td>
                     <td>{store.applicationStatus || "—"}</td>
                     <td><StatusBadge status={statusLabel} /></td>
                     <td>{store.createdAt ? new Date(store.createdAt).toLocaleDateString() : "—"}</td>

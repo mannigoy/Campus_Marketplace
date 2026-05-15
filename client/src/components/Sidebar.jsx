@@ -7,12 +7,13 @@ const NAV = [
   { key: "pending", label: "Pending Applications" },
   { key: "users", label: "Users" },
   { key: "stores", label: "Stores" },
+  { key: "categories", label: "Categories" },
 ];
 
 
 const menubyRole = {
   SELLER: ["dashboard", "products", "orders", "settings"],
-  SUPERADMIN: ["dashboard", "pending", "users", "stores", "products"],
+  SUPERADMIN: ["dashboard", "pending", "users", "stores", "products", "categories"],
 };
 
 const ROLE_ALIASES = {

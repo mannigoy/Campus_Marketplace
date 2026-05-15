@@ -13,6 +13,9 @@ public class ProductResponse {
     private String imageUrl;
     private String category;
     private String status;
+    private Long storeId;
+    private String storeName;
+    private String storeImageUrl;
 
     public static ProductResponse fromEntity(Product product) {
         ProductResponse response = new ProductResponse();
@@ -24,6 +27,11 @@ public class ProductResponse {
         response.imageUrl = product.getImageUrl();
         response.category = product.getCategory();
         response.status = product.getStatus() != null ? product.getStatus().name() : null;
+        if (product.getSeller() != null && product.getSeller().getSellerStore() != null) {
+            response.storeId = product.getSeller().getSellerStore().getId();
+            response.storeName = product.getSeller().getSellerStore().getStoreName();
+            response.storeImageUrl = product.getSeller().getSellerStore().getImageUrl();
+        }
         return response;
     }
 
@@ -35,4 +43,7 @@ public class ProductResponse {
     public String getImageUrl() { return imageUrl; }
     public String getCategory() { return category; }
     public String getStatus() { return status; }
+    public Long getStoreId() { return storeId; }
+    public String getStoreName() { return storeName; }
+    public String getStoreImageUrl() { return storeImageUrl; }
 }

@@ -10,6 +10,9 @@ import AboutUs from "./pages/AboutUs";
 import SellerSide from "./pages/SellerSide/SellerSide";
 import ShopPage from "./pages/ShopPage";
 import ProductDetails from "./pages/ProductDetails";
+import ProductsPage from "./pages/ProductsPage";
+import CategoryDetails from "./pages/CategoryDetails";
+import ShopDetails from "./pages/ShopDetails";
 import SignUpModal from "./Signupmodal";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminSide/AdminDashboard";
@@ -102,7 +105,10 @@ export default function App() {
         <Routes>
           {/* Main Shop/Home Page */}
           <Route path="/" element={<ShopPage />} />
+          <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetails />} />
+          <Route path="/category/:categoryId" element={<CategoryDetails />} />
+          <Route path="/shop/:shopId" element={<ShopDetails />} />
           
           {/* Dashboard Page (shown after login) */}
           <Route path="/dashboard" element={<Dashboard />} />

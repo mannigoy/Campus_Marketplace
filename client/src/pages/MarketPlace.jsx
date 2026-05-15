@@ -4,23 +4,7 @@ import denImg from "../assets/den.jpg";
 import pushPin from "../assets/push.jpg";
 import lanyard from "../assets/gdg_lanyard.jpg";
 
-const categories = [
-  {
-    title: "Food and Beverages",
-    shopLabel: "Shop Food",
-    image: denImg,
-  },
-  {
-    title: "Stickers and Pins",
-    shopLabel: "Shop Stickers",
-    image: denImg,
-  },
-  {
-    title: "CIT-U Official Items",
-    shopLabel: "Shop Official",
-    image: denImg,
-  },
-];
+const API_BASE = "http://localhost:8080/api";
 
 const trendingProducts = [
   {
@@ -288,6 +272,33 @@ const styles = {
 export default function Marketplace() {
   const { isMobile, isTablet } = useViewport();
   const stacked = isMobile || isTablet;
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState("");
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      setCategoriesLoading(true);
+      setCategoriesError("");
+      try {
+        const res = await fetch(`${API_BASE}/categories`);
+        const data = await res.json();
+        if (!res.ok) {
+          setCategoriesError(data.error || "Failed to load categories.");
+          setCategories([]);
+          return;
+        }
+        setCategories(Array.isArray(data) ? data : []);
+      } catch {
+        setCategories([]);
+        setCategoriesError("Failed to load categories.");
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
 
   return (
     <div style={styles.page}>
@@ -368,18 +379,32 @@ export default function Marketplace() {
             ...(isMobile ? styles.categoryGridMobile : {}),
           }}
         >
-          {categories.map((category) => (
-            <div key={category.title} style={styles.categoryCard}>
+          {categoriesLoading && (
+            <div style={styles.sectionText}>Loading categories...</div>
+          )}
+
+          {!categoriesLoading && categoriesError && (
+            <div style={{ ...styles.sectionText, color: "#b91c1c" }}>
+              {categoriesError}
+            </div>
+          )}
+
+          {!categoriesLoading && !categoriesError && categories.length === 0 && (
+            <div style={styles.sectionText}>No categories available yet.</div>
+          )}
+
+          {!categoriesLoading && !categoriesError && categories.map((category) => (
+            <div key={category.id || category.name} style={styles.categoryCard}>
               <img
-                src={category.image}
-                alt={category.title}
+                src={denImg}
+                alt={category.name}
                 style={styles.categoryImage}
               />
               <div style={styles.categoryOverlay} />
               <div style={styles.categoryContent}>
-                <div style={styles.categoryTitle}>{category.title}</div>
+                <div style={styles.categoryTitle}>{category.name}</div>
                 <a href="#" style={styles.categoryLink}>
-                  {category.shopLabel}
+                  {category.description || "Shop Now"}
                 </a>
               </div>
             </div>

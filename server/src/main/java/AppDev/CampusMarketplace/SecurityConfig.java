@@ -32,6 +32,9 @@ public class SecurityConfig {
                 // 2. Allow ALL Pre-flight requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
                 .requestMatchers("/api/auth/**", "/api/test", "/api/products/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/shops/**").permitAll()
+                .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPERADMIN")
                 .requestMatchers("/api/cart/**").authenticated()
                 .anyRequest().authenticated()
             )
