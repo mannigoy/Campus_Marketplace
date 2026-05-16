@@ -7,9 +7,9 @@ export default function Footer({
   brandDescription = "The official online store for Cebu Institute of Technology - University students. Quality uniforms, merchandise, and school supplies.",
   quickLinks = [
     { label: "Shop", href: "#" },
-    { label: "My Orders", href: "#" },
+    { label: "My Orders", href: "/my-orders" },
     { label: "Notifications", href: "#" },
-    { label: "Sell with Us", href: "#" },
+    { label: "Sell with Us", href: "/seller-application"},
   ],
   contactInfo = [
     { icon: "📍", text: "CIT-U Campus, Cebu City" },

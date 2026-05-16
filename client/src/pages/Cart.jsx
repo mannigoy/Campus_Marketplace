@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 import "../styles/Cart.css";
@@ -12,6 +13,7 @@ export default function Cart() {
   const [selectedIds, setSelectedIds] = useState(() => new Set());
   const userTouchedSelection = useRef(false);
   const { token } = useAuth();
+  const navigate = useNavigate();
 
   // Load cart from Backend Database
   const loadCart = async () => {
@@ -126,6 +128,22 @@ export default function Cart() {
     0
   );
 
+  const proceedToCheckout = () => {
+    if (!token) {
+      alert("Please sign in before checking out.");
+      return;
+    }
+
+    if (selectedItems.length === 0) {
+      alert("Please select at least one item to checkout.");
+      return;
+    }
+
+    navigate("/checkout", {
+      state: { selectedCartItemIds: selectedItems.map((item) => item.id) },
+    });
+  };
+
   if (loading) {
     return <div className="body"><p style={{textAlign: 'center', padding: '2rem'}}>Loading your cart...</p></div>;
   }
@@ -160,7 +178,7 @@ export default function Cart() {
               <div className="cart-name">{item.product?.name}</div>
              
               <button className="remove-link" onClick={() => removeItem(item.product?.id)}>
-                🗑 Remove
+                Remove
               </button>
             </div>
             <div className="qty-wrap">
@@ -211,8 +229,15 @@ export default function Cart() {
           <span className="label">Total</span>
           <span className="amount">₱{totalPrice.toLocaleString()}</span>
         </div>
-        <button className="checkout-btn">Proceed to Checkout →</button>
-        <div className="secure-note">🔒 Secure Checkout Guarantee</div>
+        <button
+          className="checkout-btn"
+          type="button"
+          disabled={selectedItems.length === 0}
+          onClick={proceedToCheckout}
+        >
+          Proceed to Checkout
+        </button>
+        <div className="secure-note">Secure Checkout Guarantee</div>
       </div>
     </div>
   </div>
