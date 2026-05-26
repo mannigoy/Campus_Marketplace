@@ -1,8 +1,25 @@
 import { useEffect, useState } from "react";
 import "../styles/MyOrders.css";
 
+const ratingOptions = [
+  "Excellent",
+  "Good",
+  "Neutral",
+  "Not good",
+  "Bad",
+];
+
+const ratingComments = {
+  Excellent: "This was excellent — a really satisfying order!",
+  Good: "Good product with a nice pickup experience.",
+  Neutral: "It was okay, a neutral experience overall.",
+  "Not good": "Not good — there is room for improvement.",
+  Bad: "Bad experience, I expected better.",
+};
+
 export default function MyOrders() {
   const [orders, setOrders] = useState([]);
+  const [ratings, setRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [canceling, setCanceling] = useState({});
@@ -33,6 +50,25 @@ export default function MyOrders() {
   useEffect(() => {
     loadOrders();
   }, []);
+
+  useEffect(() => {
+    if (orders.length === 0) return;
+
+    setRatings((prev) => {
+      const next = { ...prev };
+      orders.forEach((order) => {
+        order.items.forEach((item) => {
+          if (!next[item.id]) {
+            next[item.id] = {
+              rating: "Excellent",
+              comment: ratingComments.Excellent,
+            };
+          }
+        });
+      });
+      return next;
+    });
+  }, [orders]);
 
   const cancelOrder = async (orderId) => {
     setCanceling((prev) => ({ ...prev, [orderId]: true }));
@@ -101,29 +137,59 @@ export default function MyOrders() {
                 </div>
 
                 <div className="order-items">
-                  {order.items.map((item) => (
-                    <div className="order-item" key={item.id}>
-                      <div className="order-item-info">
-                        {item.imageUrl ? (
-                          <img
-                            src={item.imageUrl}
-                            alt={item.productName}
-                            className="order-item-image"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="order-item-image order-item-image-fallback">
-                            No Image
+                  {order.items.map((item) => {
+                    const itemRating = ratings[item.id] || { rating: "Excellent", comment: ratingComments.Excellent };
+                    return (
+                      <div className="order-item" key={item.id}>
+                        <div className="order-item-info">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.productName}
+                              className="order-item-image"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="order-item-image order-item-image-fallback">
+                              No Image
+                            </div>
+                          )}
+                          <div>
+                            <h3>{item.productName}</h3>
+                            <p>Qty: {item.quantity}</p>
                           </div>
-                        )}
-                        <div>
-                          <h3>{item.productName}</h3>
-                          <p>Qty: {item.quantity}</p>
+                        </div>
+
+                        <div className="order-item-right">
+                          <strong>₱{item.lineTotal}</strong>
+                          <div className="order-item-review">
+                            <label htmlFor={`rating-${item.id}`}>Rating</label>
+                            <select
+                              id={`rating-${item.id}`}
+                              value={itemRating.rating}
+                              onChange={(event) => {
+                                const nextRating = event.target.value;
+                                setRatings((prev) => ({
+                                  ...prev,
+                                  [item.id]: {
+                                    rating: nextRating,
+                                    comment: ratingComments[nextRating],
+                                  },
+                                }));
+                              }}
+                            >
+                              {ratingOptions.map((ratingOption) => (
+                                <option key={ratingOption} value={ratingOption}>
+                                  {ratingOption}
+                                </option>
+                              ))}
+                            </select>
+                            <p className="order-review-text">{itemRating.comment}</p>
+                          </div>
                         </div>
                       </div>
-                      <strong>₱{item.lineTotal}</strong>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="order-total">

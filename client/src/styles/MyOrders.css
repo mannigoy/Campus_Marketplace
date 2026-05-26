@@ -93,6 +93,7 @@
   display: flex;
   justify-content: space-between;
   gap: 16px;
+  align-items: flex-start;
   padding: 14px 0;
   border-bottom: 1px solid #eeeeee;
 }
@@ -101,6 +102,46 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.order-item-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 190px;
+  text-align: right;
+}
+
+.order-item-review {
+  margin-top: 12px;
+  padding: 12px;
+  background: #fff8e6;
+  border-radius: 12px;
+  border: 1px solid #ffedd5;
+  color: #3c2a21;
+}
+
+.order-item-review label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.order-item-review select {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #e2d3c4;
+  padding: 8px 10px;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.order-review-text {
+  margin: 0;
+  font-size: 13px;
+  color: #5c4632;
+  line-height: 1.5;
 }
 
 .order-item-image {
