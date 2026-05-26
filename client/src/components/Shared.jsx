@@ -6,10 +6,15 @@ export function StatusBadge({ status }) {
     Hidden: { bg: "#fef3c7", color: "#92400e", dot: "#f59e0b" },
     Suspended: { bg: "#fee2e2", color: "#991b1b", dot: "#ef4444" },
     Inactive: { bg: "#fee2e2", color: "#991b1b", dot: "#ef4444" },
+    Pending: { bg: "#fef3c7", color: "#92400e", dot: "#f59e0b" },
+    "Ready For Pickup": { bg: "#e0e7ff", color: "#3730a3", dot: "#6366f1" },
+    Completed: { bg: "#d1fae5", color: "#065f46", dot: "#10b981" },
     Delivered: { bg: "#d1fae5", color: "#065f46", dot: "#10b981" },
     Processing: { bg: "#fef3c7", color: "#92400e", dot: "#f59e0b" },
     Shipped: { bg: "#dbeafe", color: "#1e40af", dot: "#3b82f6" },
     Cancelled: { bg: "#fee2e2", color: "#991b1b", dot: "#ef4444" },
+    Paid: { bg: "#dcfce7", color: "#166534", dot: "#22c55e" },
+    Unpaid: { bg: "#fee2e2", color: "#991b1b", dot: "#ef4444" },
   };
   const s = map[status] || map.Draft;
   return (

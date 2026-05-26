@@ -117,15 +117,12 @@
 }
 
 .btn-secondary {
-  background: #667eea;
-  color: white;
+  color: #660018;
+
+ 
 }
 
-.btn-secondary:hover {
-  background: #5568d3;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-}
+
 
 .btn-logout {
   background: #f8f9fa;

@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -87,6 +89,22 @@ public class CustomerOrderController {
         return ResponseEntity.ok(orders);
     }
 
+    @PutMapping("/{orderId}/cancel")
+    public ResponseEntity<?> cancelOrder(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long orderId
+    ) {
+        try {
+            User buyer = getUserFromToken(authHeader);
+            CustomerOrder order = orderService.cancelOrder(orderId, buyer);
+            return ResponseEntity.ok(toResponse(order));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(
+                    Map.of("error", e.getMessage())
+            );
+        }
+    }
+
     private Map<String, Object> toResponse(CustomerOrder order) {
 
         List<Map<String, Object>> items = order.getItems()
@@ -116,10 +134,12 @@ public class CustomerOrderController {
     private Map<String, Object> itemToResponse(CustomerOrderItem item) {
 
         Map<String, Object> response = new HashMap<>();
+        var product = item.getProduct();
 
         response.put("id", item.getId());
-        response.put("productId", item.getProduct().getId());
+        response.put("productId", product != null ? product.getId() : null);
         response.put("productName", item.getProductName());
+        response.put("imageUrl", product != null ? product.getImageUrl() : null);
         response.put("unitPrice", item.getUnitPrice());
         response.put("quantity", item.getQuantity());
         response.put("lineTotal", item.getLineTotal());

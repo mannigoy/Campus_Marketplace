@@ -32,6 +32,12 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final CustomerOrderRepository orderRepository;
     private final ProductRepository productRepository;
+        private static final Set<OrderStatus> SELLER_ALLOWED_STATUSES = Set.of(
+            OrderStatus.PENDING,
+            OrderStatus.READY_FOR_PICKUP,
+            OrderStatus.COMPLETED,
+            OrderStatus.CANCELLED
+        );
 
     public OrderService(
             CartRepository cartRepository,
@@ -78,7 +84,8 @@ public class OrderService {
         order.setPickupTime(LocalTime.parse(request.getPickupTime()));
         order.setPickupLocation(request.getPickupLocation().trim());
         order.setPaymentMethod(request.getPaymentMethod().trim());
-        order.setPaymentStatus(isPaidMethod(request.getPaymentMethod()) ? PaymentStatus.PAID : PaymentStatus.UNPAID);
+        boolean isPaid = isPaidMethod(request.getPaymentMethod());
+        order.setPaymentStatus(isPaid ? PaymentStatus.PAID : PaymentStatus.UNPAID);
         order.setOrderStatus(OrderStatus.PENDING);
 
         BigDecimal total = BigDecimal.ZERO;
@@ -124,8 +131,74 @@ public class OrderService {
         return orderRepository.findByBuyerOrderByCreatedAtDesc(buyer);
     }
 
+    public List<CustomerOrder> getSellerOrders(User seller) {
+        if (seller == null || seller.getId() == null) {
+            return List.of();
+        }
+        return orderRepository.findBySellerIdOrderByCreatedAtDesc(seller.getId());
+    }
+
+    public CustomerOrder markOrderPaid(Long orderId, User seller) {
+        CustomerOrder order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        assertSellerOwnsOrder(order, seller);
+        order.setPaymentStatus(PaymentStatus.PAID);
+        return orderRepository.save(order);
+    }
+
+    public CustomerOrder updateOrderStatus(Long orderId, User seller, OrderStatus nextStatus) {
+        CustomerOrder order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        assertSellerOwnsOrder(order, seller);
+        if (nextStatus == null || !SELLER_ALLOWED_STATUSES.contains(nextStatus)) {
+            throw new RuntimeException("Invalid order status");
+        }
+
+        order.setOrderStatus(nextStatus);
+        return orderRepository.save(order);
+    }
+
+    public CustomerOrder cancelOrder(Long orderId, User buyer) {
+        CustomerOrder order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (buyer == null || buyer.getId() == null
+                || order.getBuyer() == null
+                || order.getBuyer().getId() == null
+                || !order.getBuyer().getId().equals(buyer.getId())) {
+            throw new RuntimeException("Forbidden");
+        }
+
+        if (order.getPaymentStatus() == PaymentStatus.PAID) {
+            throw new RuntimeException("Paid orders cannot be cancelled");
+        }
+
+        if (order.getOrderStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException("Only pending orders can be cancelled");
+        }
+
+        order.setOrderStatus(OrderStatus.CANCELLED);
+        return orderRepository.save(order);
+    }
+
     private boolean isPaidMethod(String paymentMethod) {
         return "GCash".equalsIgnoreCase(paymentMethod) || "Card".equalsIgnoreCase(paymentMethod);
+    }
+
+    private void assertSellerOwnsOrder(CustomerOrder order, User seller) {
+        Long sellerId = seller == null ? null : seller.getId();
+        boolean ownsItem = order.getItems().stream().anyMatch(item ->
+                item.getProduct() != null
+                        && item.getProduct().getSeller() != null
+                        && item.getProduct().getSeller().getId() != null
+                        && item.getProduct().getSeller().getId().equals(sellerId)
+        );
+
+        if (!ownsItem) {
+            throw new RuntimeException("Forbidden");
+        }
     }
 
     private void validateCheckoutRequest(CheckoutRequest request) {

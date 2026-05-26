@@ -5,33 +5,60 @@ export default function MyOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [canceling, setCanceling] = useState({});
+
+  const loadOrders = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch("http://localhost:8080/api/orders/my-orders", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load orders");
+      }
+
+      const data = await response.json();
+      setOrders(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const token = localStorage.getItem("token");
-
-        const response = await fetch("http://localhost:8080/api/orders/my-orders", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to load orders");
-        }
-
-        const data = await response.json();
-        setOrders(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
+    loadOrders();
   }, []);
+
+  const cancelOrder = async (orderId) => {
+    setCanceling((prev) => ({ ...prev, [orderId]: true }));
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:8080/api/orders/${orderId}/cancel`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Failed to cancel order");
+        return;
+      }
+
+      setOrders((prev) => prev.map((order) => (order.id === data.id ? data : order)));
+    } catch (err) {
+      setError(err.message || "Failed to cancel order");
+    } finally {
+      setCanceling((prev) => ({ ...prev, [orderId]: false }));
+    }
+  };
 
   if (loading) {
     return <div className="orders-page">Loading orders...</div>;
@@ -76,9 +103,23 @@ export default function MyOrders() {
                 <div className="order-items">
                   {order.items.map((item) => (
                     <div className="order-item" key={item.id}>
-                      <div>
-                        <h3>{item.productName}</h3>
-                        <p>Qty: {item.quantity}</p>
+                      <div className="order-item-info">
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.productName}
+                            className="order-item-image"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="order-item-image order-item-image-fallback">
+                            No Image
+                          </div>
+                        )}
+                        <div>
+                          <h3>{item.productName}</h3>
+                          <p>Qty: {item.quantity}</p>
+                        </div>
                       </div>
                       <strong>₱{item.lineTotal}</strong>
                     </div>
@@ -89,6 +130,17 @@ export default function MyOrders() {
                   <span>Total</span>
                   <strong>₱{order.totalAmount}</strong>
                 </div>
+                {order.orderStatus === "PENDING" && order.paymentStatus === "UNPAID" && (
+                  <div className="order-actions">
+                    <button
+                      className="order-cancel-btn"
+                      onClick={() => cancelOrder(order.id)}
+                      disabled={!!canceling[order.id]}
+                    >
+                      {canceling[order.id] ? "Cancelling..." : "Cancel Order"}
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
