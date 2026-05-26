@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useNotifications } from "../NotificationContext.jsx";
 import "../styles/navbar_footer.css";
 
 export default function Navbar({
@@ -24,6 +25,8 @@ export default function Navbar({
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth < 768 : false
   );
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+  const { notifications, clearNotifications } = useNotifications();
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768);
@@ -99,9 +102,52 @@ export default function Navbar({
             )}
 
             {showNotification && !isMobile && (
-              <button type="button" className="nav-btn">
-                Notifications 🔔
-              </button>
+              <div className="nav-notification-wrapper">
+                <button
+                  type="button"
+                  className="nav-btn nav-notification-btn"
+                  onClick={() => setShowNotificationPanel((prev) => !prev)}
+                  aria-expanded={showNotificationPanel}
+                >
+                  Notifications 🔔
+                  {notifications.length > 0 && (
+                    <span className="notification-badge">{notifications.length}</span>
+                  )}
+                </button>
+
+                <div
+                  className={`nav-notification-panel ${showNotificationPanel ? "open" : ""}`}
+                  role="dialog"
+                  aria-label="Notification center"
+                >
+                  <div className="nav-notification-header">
+                    <span>Recent notifications</span>
+                    <button
+                      type="button"
+                      className="nav-notification-clear"
+                      onClick={() => {
+                        clearNotifications();
+                        setShowNotificationPanel(false);
+                      }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  {notifications.length === 0 ? (
+                    <div className="nav-notification-empty">No new notifications</div>
+                  ) : (
+                    notifications.map((item) => (
+                      <div key={item.id} className="nav-notification-item">
+                        <div>
+                          <strong>{item.title}</strong>
+                          <p>{item.message}</p>
+                        </div>
+                        <span>{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             )}
 
             <div className="nav-account">

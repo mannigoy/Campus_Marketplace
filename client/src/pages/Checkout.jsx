@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
+import { useNotifications } from "../NotificationContext.jsx";
 import "../styles/Checkout.css";
 
 const API_BASE = "http://localhost:8080";
 
 export default function Checkout() {
   const { token, user } = useAuth();
+  const { addNotification } = useNotifications();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -107,7 +109,13 @@ export default function Checkout() {
         }
       );
 
-      setMessage(`Order placed successfully. Order #${response.data.id}`);
+      const orderId = response.data?.id || "#";
+      setMessage(`Order placed successfully. Order ${orderId}`);
+      addNotification({
+        title: "Order Confirmed",
+        message: `Your order ${orderId} was placed successfully.`,
+        type: "success",
+      });
       setTimeout(() => navigate("/cart"), 1200);
     } catch (err) {
       console.error("Checkout error:", err);
